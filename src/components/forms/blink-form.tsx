@@ -431,7 +431,7 @@ export function BlinkForm({ onSubmit, onChange }: BlinkFormProps) {
                             staking on Solana, your SOL will be locked and will
                             earn staking rewards.
                           </p>
-                        </div>
+                      </div>
                       </FormControl>
                     </FormItem>
                   )}
@@ -457,7 +457,7 @@ export function BlinkForm({ onSubmit, onChange }: BlinkFormProps) {
                     </FormItem>
                   )}
                 />
-              </div>
+                </div>
             )}
           </CardContent>
           <CardFooter>
@@ -477,7 +477,7 @@ export function BlinkForm({ onSubmit, onChange }: BlinkFormProps) {
                 className="blink-form-button bg-green-400 text-black"
               >
                 {loading ? "Creating..." : "Create Blink"}
-              </Button>
+            </Button>
             </div>
           </CardFooter>
         </Card>

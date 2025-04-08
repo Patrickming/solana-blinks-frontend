@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -30,8 +31,14 @@ export function ForumContent() {
   const [newTopicCategory, setNewTopicCategory] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { t, currentLanguage } = useLanguage()
+  const router = useRouter()
 
   const { toast } = useToast()
+
+  // 处理点击话题导航到详情页
+  const handleTopicClick = (topicId: number) => {
+    router.push(`/forum/${topicId}`)
+  }
 
   const handleCreateTopic = () => {
     if (!newTopicTitle.trim() || !newTopicContent.trim() || !newTopicCategory) {
@@ -206,7 +213,11 @@ export function ForumContent() {
         <TabsContent value="all" className="space-y-4">
           {filteredTopics.length > 0 ? (
             filteredTopics.map((topic) => (
-              <Card key={topic.id} className="glass-morphism">
+              <Card 
+                key={topic.id} 
+                className="glass-morphism cursor-pointer transition-all hover:shadow-md hover:border-primary/40"
+                onClick={() => handleTopicClick(topic.id)}
+              >
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
@@ -244,16 +255,16 @@ export function ForumContent() {
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <div className="flex space-x-4">
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                       <MessageCircle className="h-4 w-4" />
                       <span>{topic.replies}</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                       <ThumbsUp className="h-4 w-4" />
                       <span>{topic.likes}</span>
                     </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="flex items-center space-x-1">
+                  <Button variant="outline" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
                     <Share2 className="h-4 w-4 mr-1" />
                     {t("forum.actions.share")}
                   </Button>
