@@ -101,31 +101,87 @@ export default function BlinkCreator() {
 
   // 仅在Vercel生产环境修复Blink样式问题
   useEffect(() => {
-    // 检查是否处于生产环境
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-      // 避免重复添加样式
-      if (!document.getElementById('blink-vercel-fix')) {
-        const style = document.createElement('style')
-        style.id = 'blink-vercel-fix'
-        style.innerHTML = `
-          /* 仅在Vercel环境中解决Blink样式问题的临时修复 */
-          .blink button[type="button"] {
-            background: linear-gradient(to right, #9945FF, #14F195);
-          }
-          .blink button[type="button"]:hover {
-            opacity: 0.9;
-          }
-        `
-        document.head.appendChild(style)
-      }
-    }
+    // 只在浏览器环境下执行
+    if (typeof window === 'undefined') return;
     
-    return () => {
-      // 组件卸载时移除样式
-      const fixStyle = document.getElementById('blink-vercel-fix')
-      if (fixStyle) {
-        fixStyle.remove()
-      }
+    // 判断是否是Vercel环境或生产环境
+    const isVercelOrProduction = window.location.hostname !== 'localhost' && 
+                                window.location.hostname !== '127.0.0.1';
+    
+    if (isVercelOrProduction) {
+      // 创建一个全面的样式修复
+      const style = document.createElement('style');
+      style.id = 'blink-vercel-fix';
+      style.innerHTML = `
+        /* Vercel环境中Blink样式的全面修复 */
+        .blink.x-dark {
+          --blink-button: #9945FF !important;
+          --blink-button-hover: #14F195 !important;
+          --blink-text-button: #FFFFFF !important;
+          --blink-bg-primary: #111827 !important;
+          --blink-bg-secondary: #1F2937 !important;
+          --blink-stroke-primary: #9945FF !important;
+          font-family: inherit !important;
+        }
+        
+        .blink button[type="button"],
+        .blink .action-button {
+          background: linear-gradient(to right, #9945FF, #14F195) !important;
+          border-radius: 6px !important;
+          color: white !important;
+        }
+        
+        .blink button[type="button"]:hover,
+        .blink .action-button:hover {
+          opacity: 0.9 !important;
+        }
+        
+        .blink input {
+          background-color: #1F2937 !important;
+          border-color: rgba(153, 69, 255, 0.3) !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // 创建一个MutationObserver来监视DOM变化
+      // 当Blink组件被实际渲染到DOM中时，确保样式被正确应用
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === 'childList') {
+            // 检查是否有新增的.blink元素
+            const blinkElements = document.querySelectorAll('.blink');
+            if (blinkElements.length > 0) {
+              // 找到Blink元素后，可以对其进行额外处理
+              blinkElements.forEach(el => {
+                // 确保样式应用到该元素
+                el.classList.add('x-dark');
+                
+                // 查找并修复按钮
+                const buttons = el.querySelectorAll('button');
+                buttons.forEach(button => {
+                  // 添加自定义类以便我们的CSS能够匹配到它
+                  button.classList.add('blink-button-fixed');
+                });
+              });
+            }
+          }
+        }
+      });
+      
+      // 开始观察document.body的所有子树变化
+      observer.observe(document.body, { 
+        childList: true, 
+        subtree: true 
+      });
+      
+      // 清理函数
+      return () => {
+        observer.disconnect();
+        const styleEl = document.getElementById('blink-vercel-fix');
+        if (styleEl) {
+          styleEl.remove();
+        }
+      };
     }
   }, [])
 
