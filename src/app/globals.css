@@ -1,0 +1,269 @@
+/* 导入 Tailwind CSS 基础样式 */
+@tailwind base;
+/* 导入 Tailwind CSS 组件样式 */
+@tailwind components;
+/* 导入 Tailwind CSS 工具样式 */
+@tailwind utilities;
+
+/* 基础层，定义全局变量和样式 */
+@layer base {
+  /* 根元素（亮色主题）变量定义 */
+  :root {
+    /* 背景色：白色 */
+    --background: 0 0% 100%;
+    /* 前景色（文本）：深灰色 */
+    --foreground: 222.2 84% 4.9%;
+    /* 卡片背景色：白色 */
+    --card: 0 0% 100%;
+    /* 卡片前景色：深灰色 */
+    --card-foreground: 222.2 84% 4.9%;
+    /* 弹出层背景色：白色 */
+    --popover: 0 0% 100%;
+    /* 弹出层前景色：深灰色 */
+    --popover-foreground: 222.2 84% 4.9%;
+    /* 主要颜色：紫色 */
+    --primary: 262 100% 64%;
+    /* 主要颜色的前景色：浅灰色 */
+    --primary-foreground: 210 40% 98%;
+    /* 次要颜色：浅蓝灰色 */
+    --secondary: 210 40% 96.1%;
+    /* 次要颜色的前景色：深灰色 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* 静音颜色：浅蓝灰色 */
+    --muted: 210 40% 96.1%;
+    /* 静音颜色的前景色：中灰色 */
+    --muted-foreground: 215.4 16.3% 46.9%;
+    /* 强调颜色：浅蓝灰色 */
+    --accent: 210 40% 96.1%;
+    /* 强调颜色的前景色：深灰色 */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    /* 破坏性颜色：红色 */
+    --destructive: 0 84.2% 60.2%;
+    /* 破坏性颜色的前景色：浅灰色 */
+    --destructive-foreground: 210 40% 98%;
+    /* 边框颜色：浅灰色 */
+    --border: 214.3 31.8% 91.4%;
+    /* 输入框颜色：浅灰色 */
+    --input: 214.3 31.8% 91.4%;
+    /* 环形颜色：蓝色 */
+    --ring: 221.2 83.2% 53.3%;
+    /* 圆角大小 */
+    --radius: 0.5rem;
+
+    /* Solana 特定颜色 */
+    /* Solana 蓝色 */
+    --solana-blue: 210 45% 15%;
+    /* Solana 紫色 */
+    --solana-purple: 262 100% 64%;
+    /* Solana 绿色 */
+    --solana-green: 157 91% 51%;
+    /* Solana 科技蓝 */
+    --solana-tech-blue: 196 100% 50%;
+    /* Solana 错误红 */
+    --solana-error-red: 0 76% 61%;
+  }
+
+  /* 暗色主题变量定义 */
+  .dark {
+    /* 背景色：深灰色 */
+    --background: 222 47% 11%;
+    /* 前景色：浅灰色 */
+    --foreground: 210 40% 98%;
+    /* 卡片背景色：深灰色 */
+    --card: 222 47% 11%;
+    /* 卡片前景色：浅灰色 */
+    --card-foreground: 210 40% 98%;
+    /* 弹出层背景色：深灰色 */
+    --popover: 222 47% 11%;
+    /* 弹出层前景色：浅灰色 */
+    --popover-foreground: 210 40% 98%;
+    /* 主要颜色：紫色（与亮色主题相同） */
+    --primary: 262 100% 64%;
+    /* 主要颜色的前景色：浅灰色 */
+    --primary-foreground: 210 40% 98%;
+    /* 次要颜色：深蓝灰色 */
+    --secondary: 217.2 32.6% 17.5%;
+    /* 次要颜色的前景色：浅灰色 */
+    --secondary-foreground: 210 40% 98%;
+    /* 静音颜色：深蓝灰色 */
+    --muted: 217.2 32.6% 17.5%;
+    /* 静音颜色的前景色：中灰色 */
+    --muted-foreground: 215 20.2% 65.1%;
+    /* 强调颜色：深蓝灰色 */
+    --accent: 217.2 32.6% 17.5%;
+    /* 强调颜色的前景色：浅灰色 */
+    --accent-foreground: 210 40% 98%;
+    /* 破坏性颜色：深红色 */
+    --destructive: 0 62.8% 30.6%;
+    /* 破坏性颜色的前景色：浅灰色 */
+    --destructive-foreground: 210 40% 98%;
+    /* 边框颜色：深蓝灰色 */
+    --border: 217.2 32.6% 17.5%;
+    /* 输入框颜色：深蓝灰色 */
+    --input: 217.2 32.6% 17.5%;
+    /* 环形颜色：蓝色 */
+    --ring: 224.3 76.3% 48%;
+
+    /* Solana 特定颜色（与亮色主题相同） */
+    --solana-blue: 210 45% 15%;
+    --solana-purple: 262 100% 64%;
+    --solana-green: 157 91% 51%;
+    --solana-tech-blue: 196 100% 50%;
+    --solana-error-red: 0 76% 61%;
+  }
+}
+
+/* 基础层的其他样式 */
+@layer base {
+  /* 所有元素应用边框颜色 */
+  * {
+    @apply border-border;
+  }
+  /* 设置 body 的背景色和文本颜色 */
+  body {
+    @apply bg-background text-foreground;
+    /* Add a subtle background pattern */
+    background-image: radial-gradient(circle at top right, rgba(153, 69, 255, 0.1), transparent 40%),
+      radial-gradient(circle at bottom left, rgba(20, 241, 149, 0.1), transparent 40%),
+      linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.05));
+    background-attachment: fixed;
+  }
+}
+
+/* Solana 渐变背景 */
+.bg-solana-gradient {
+  background: linear-gradient(to right, #9945ff, #14f195);
+}
+
+/* Solana 卡片背景 */
+.bg-solana-card {
+  @apply bg-background/80 backdrop-blur-lg border border-border/50;
+}
+
+/* 玻璃态效果 */
+.glass-morphism {
+  @apply bg-background/60 backdrop-blur-md border border-white/10 shadow-lg;
+}
+
+/* 加载动画 */
+@keyframes solana-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Solana 加载样式 */
+.solana-loading {
+  animation: solana-spin 1.5s linear infinite;
+}
+
+/* Markdown 内容样式 */
+.prose {
+  @apply text-foreground;
+}
+
+.prose a {
+  @apply text-primary hover:text-primary/80 no-underline;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  @apply text-foreground font-bold;
+}
+
+.prose code {
+  @apply bg-muted px-1 py-0.5 rounded text-foreground;
+}
+
+.prose pre {
+  @apply bg-muted p-4 rounded-md overflow-x-auto;
+}
+
+.prose ul {
+  @apply list-disc pl-6;
+}
+
+.prose ol {
+  @apply list-decimal pl-6;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary/30 pl-4 italic;
+}
+
+/* Animation for error shake */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Gradient text - using direct CSS instead of @apply */
+.gradient-text {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #9945ff, #14f195);
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:border-primary/30;
+}
+
+/* 自定义Blink组件样式 */
+.blink.x-dark {
+  --blink-button: var(--solana-purple);
+  --blink-button-hover: var(--solana-green);
+  --blink-text-button: #FFFFFF;
+  --blink-stroke-primary: var(--solana-purple);
+  --blink-text-brand: var(--solana-green);
+  --blink-shadow-container: 0px 0px 8px 0px rgba(153, 69, 255, 0.3);
+  --blink-bg-primary: #111827;
+  --blink-bg-secondary: #1F2937;
+}
+
+/* 自定义钱包连接按钮样式 */
+.wallet-adapter-button {
+  background: linear-gradient(to right, #9945FF, #14F195) !important;
+  border-radius: 6px !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.wallet-adapter-button:hover {
+  opacity: 0.9 !important;
+}
+
+.wallet-adapter-dropdown-list {
+  background-color: #111827 !important;
+  border: 1px solid #9945FF !important;
+}
+
+.wallet-adapter-dropdown-list-item:hover {
+  background-color: rgba(153, 69, 255, 0.2) !important;
+}
+
