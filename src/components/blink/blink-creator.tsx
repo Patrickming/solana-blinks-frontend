@@ -99,6 +99,36 @@ export default function BlinkCreator() {
     }
   }, [refreshBlink, refresh, recipient])
 
+  // 仅在Vercel生产环境修复Blink样式问题
+  useEffect(() => {
+    // 检查是否处于生产环境
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      // 避免重复添加样式
+      if (!document.getElementById('blink-vercel-fix')) {
+        const style = document.createElement('style')
+        style.id = 'blink-vercel-fix'
+        style.innerHTML = `
+          /* 仅在Vercel环境中解决Blink样式问题的临时修复 */
+          .blink button[type="button"] {
+            background: linear-gradient(to right, #9945FF, #14F195);
+          }
+          .blink button[type="button"]:hover {
+            opacity: 0.9;
+          }
+        `
+        document.head.appendChild(style)
+      }
+    }
+    
+    return () => {
+      // 组件卸载时移除样式
+      const fixStyle = document.getElementById('blink-vercel-fix')
+      if (fixStyle) {
+        fixStyle.remove()
+      }
+    }
+  }, [])
+
   // 处理表单提交
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
