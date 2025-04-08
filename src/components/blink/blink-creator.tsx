@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Blink, useBlink } from "@dialectlabs/blinks"
 import { useBlinkSolanaWalletAdapter } from "@dialectlabs/blinks/hooks/solana"
 import "@dialectlabs/blinks/index.css"
@@ -99,91 +99,109 @@ export default function BlinkCreator() {
     }
   }, [refreshBlink, refresh, recipient])
 
-  // 仅在Vercel生产环境修复Blink样式问题
+  // Add Vercel production environment style fixes
   useEffect(() => {
-    // 只在浏览器环境下执行
-    if (typeof window === 'undefined') return;
-    
-    // 判断是否是Vercel环境或生产环境
-    const isVercelOrProduction = window.location.hostname !== 'localhost' && 
-                                window.location.hostname !== '127.0.0.1';
-    
-    if (isVercelOrProduction) {
-      // 创建一个全面的样式修复
+    // Only apply fixes in Vercel production environment
+    if (typeof window !== 'undefined' && window.location.host.includes('vercel.app')) {
+      // Create a style element
       const style = document.createElement('style');
-      style.id = 'blink-vercel-fix';
-      style.innerHTML = `
-        /* Vercel环境中Blink样式的全面修复 */
-        .blink.x-dark {
-          --blink-button: #9945FF !important;
-          --blink-button-hover: #14F195 !important;
-          --blink-text-button: #FFFFFF !important;
-          --blink-bg-primary: #111827 !important;
-          --blink-bg-secondary: #1F2937 !important;
-          --blink-stroke-primary: #9945FF !important;
-          font-family: inherit !important;
+      style.textContent = `
+        .blink-warning {
+          color: #eab308 !important;
+          padding: 8px !important;
+          border-radius: 4px !important;
+          margin: 10px 0 !important;
+          background-color: rgba(234, 179, 8, 0.1) !important;
         }
         
-        .blink button[type="button"],
-        .blink .action-button {
-          background: linear-gradient(to right, #9945FF, #14F195) !important;
-          border-radius: 6px !important;
-          color: white !important;
+        .blink-form-button {
+          background-color: #4ade80 !important;
+          color: black !important;
+          font-weight: 500 !important;
         }
         
-        .blink button[type="button"]:hover,
-        .blink .action-button:hover {
-          opacity: 0.9 !important;
-        }
-        
-        .blink input {
-          background-color: #1F2937 !important;
-          border-color: rgba(153, 69, 255, 0.3) !important;
+        .blink-cancel-button {
+          background-color: transparent !important;
+          border: 1px solid #e2e8f0 !important;
         }
       `;
+      
       document.head.appendChild(style);
       
-      // 创建一个MutationObserver来监视DOM变化
-      // 当Blink组件被实际渲染到DOM中时，确保样式被正确应用
+      // Apply styles to existing elements immediately
+      const applyStyles = () => {
+        const warningElements = document.querySelectorAll('.blink-warning');
+        const formButtons = document.querySelectorAll('.blink-form-button');
+        const cancelButtons = document.querySelectorAll('.blink-cancel-button');
+        
+        warningElements.forEach(el => {
+          (el as HTMLElement).style.color = '#eab308';
+          (el as HTMLElement).style.padding = '8px';
+          (el as HTMLElement).style.borderRadius = '4px';
+          (el as HTMLElement).style.margin = '10px 0';
+          (el as HTMLElement).style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
+        });
+        
+        formButtons.forEach(el => {
+          (el as HTMLElement).style.backgroundColor = '#4ade80';
+          (el as HTMLElement).style.color = 'black';
+          (el as HTMLElement).style.fontWeight = '500';
+        });
+        
+        cancelButtons.forEach(el => {
+          (el as HTMLElement).style.backgroundColor = 'transparent';
+          (el as HTMLElement).style.border = '1px solid #e2e8f0';
+        });
+      };
+      
+      // Apply styles immediately
+      applyStyles();
+      
+      // Also apply after a short delay to catch elements that might render after initial load
+      setTimeout(applyStyles, 500);
+      setTimeout(applyStyles, 1000);
+      
+      // Set up MutationObserver to catch dynamically added elements
       const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList') {
-            // 检查是否有新增的.blink元素
-            const blinkElements = document.querySelectorAll('.blink');
-            if (blinkElements.length > 0) {
-              // 找到Blink元素后，可以对其进行额外处理
-              blinkElements.forEach(el => {
-                // 确保样式应用到该元素
-                el.classList.add('x-dark');
-                
-                // 查找并修复按钮
-                const buttons = el.querySelectorAll('button');
-                buttons.forEach(button => {
-                  // 添加自定义类以便我们的CSS能够匹配到它
-                  button.classList.add('blink-button-fixed');
-                });
-              });
-            }
+        let shouldApplyStyles = false;
+        
+        mutations.forEach(mutation => {
+          // Check for added nodes
+          if (mutation.addedNodes.length > 0) {
+            shouldApplyStyles = true;
           }
+          
+          // Check for attribute changes on relevant elements
+          if (mutation.type === 'attributes' && 
+              ((mutation.target as Element).classList?.contains('blink-warning') ||
+               (mutation.target as Element).classList?.contains('blink-form-button') ||
+               (mutation.target as Element).classList?.contains('blink-cancel-button'))) {
+            shouldApplyStyles = true;
+          }
+        });
+        
+        if (shouldApplyStyles) {
+          applyStyles();
         }
       });
       
-      // 开始观察document.body的所有子树变化
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true 
+      // Start observing with configuration
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class']
       });
       
-      // 清理函数
+      // Clean up function
       return () => {
         observer.disconnect();
-        const styleEl = document.getElementById('blink-vercel-fix');
-        if (styleEl) {
-          styleEl.remove();
+        if (document.head.contains(style)) {
+          document.head.removeChild(style);
         }
       };
     }
-  }, [])
+  }, []);
 
   // 处理表单提交
   const handleSubmit = (e: React.FormEvent) => {

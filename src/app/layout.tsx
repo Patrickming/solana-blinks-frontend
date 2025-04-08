@@ -26,6 +26,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh" suppressHydrationWarning>
+      <head>
+        {/* Preload critical external CSS */}
+        <link 
+          rel="preload"
+          href="https://unpkg.com/@dialectlabs/blinks/dist/index.css"
+          as="style"
+        />
+        <link 
+          rel="stylesheet"
+          href="https://unpkg.com/@dialectlabs/blinks/dist/index.css"
+          precedence="high"
+        />
+      </head>
       <body className={`${inter.className} antialiased min-h-screen`}>
         {/* 主题提供者 - 管理深色/浅色主题 */}
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

@@ -416,11 +416,69 @@ export function BlinkForm({ onSubmit, onChange }: BlinkFormProps) {
                 </div>
               </>
             )}
+
+            {watch("blinkType")?.some((type) => type === "stake") && (
+              <div className="mt-3">
+                <FormField
+                  control={form.control}
+                  name="stakeWarning"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="blink-warning text-yellow-500 text-sm">
+                          <p>
+                            Staking rewards come from Solana inflation. When
+                            staking on Solana, your SOL will be locked and will
+                            earn staking rewards.
+                          </p>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {watch("blinkType")?.some((type) => type === "tip") && (
+              <div className="mt-3">
+                <FormField
+                  control={form.control}
+                  name="tipWarning"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="blink-warning text-yellow-500 text-sm">
+                          <p>
+                            Tips are not recoverable by the sender. Be sure to verify
+                            the recipient address before sending.
+                          </p>
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
-              {t("blink.form.create")}
-            </Button>
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                onClick={onBack}
+                disabled={!onBack || loading}
+                className="blink-cancel-button"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                type="submit"
+                disabled={loading || !isFormValid()}
+                className="blink-form-button bg-green-400 text-black"
+              >
+                {loading ? "Creating..." : "Create Blink"}
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </form>

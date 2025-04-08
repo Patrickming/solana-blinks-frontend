@@ -27,6 +27,27 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  compiler: {
+    styledComponents: true,
+  },
+  output: 'standalone',
+  optimizeFonts: true,
+  webpack: (config) => {
+    let existingWebpackConfig = config;
+    
+    if (userConfig && userConfig.default?.webpack || userConfig?.webpack) {
+      // Don't modify here, will be merged later
+    } else {
+      config.resolve.fallback = { 
+        ...config.resolve.fallback,
+        fs: false, 
+        path: false, 
+        os: false 
+      };
+    }
+    
+    return existingWebpackConfig;
+  },
 }
 
 if (userConfig) {
