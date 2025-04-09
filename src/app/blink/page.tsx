@@ -1,5 +1,5 @@
-import { SiteHeader } from "@/components/layout/site-header"
-import BlinkCreatorWrapper from "@/components/blink/blink-creator-wrapper"
+import { SiteHeader } from "@/app/components/layout/site-header"
+import BlinkCreatorWrapper from "@/app/components/blink/blink-creator-wrapper"
 
 export const metadata = {
   title: "创建 Blink | Solana Blinks",

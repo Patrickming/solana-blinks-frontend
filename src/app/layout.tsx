@@ -2,12 +2,12 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { WalletProvider } from "@/context/wallet-context"
-import { SidebarProvider } from "@/context/sidebar-context"
-import { AuthProvider } from "@/context/auth-context"
-import { LanguageProvider } from "@/context/language-context"
-import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/app/components/theme-provider"
+import { WalletProvider } from "@/app/context/wallet-context"
+import { SidebarProvider } from "@/app/context/sidebar-context"
+import { AuthProvider } from "@/app/context/auth-context"
+import { LanguageProvider } from "@/app/context/language-context"
+import { Toaster } from "@/app/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 

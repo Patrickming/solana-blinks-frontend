@@ -1,17 +1,17 @@
 "use client"
 
 import { useState } from "react"
-import { SiteHeader } from "@/components/layout/site-header"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { SiteHeader } from "@/app/components/layout/site-header"
+import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
+import { Badge } from "@/app/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/components/ui/avatar"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Search, ThumbsUp, MessageSquare, ExternalLink, Filter } from "lucide-react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useLanguage } from "@/context/language-context"
+import { useLanguage } from "@/app/context/language-context"
 
 export default function ShowcasePage() {
   const [searchQuery, setSearchQuery] = useState("")

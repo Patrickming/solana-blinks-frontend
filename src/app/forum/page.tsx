@@ -1,8 +1,8 @@
 "use client"
 
-import { SiteHeader } from "@/components/layout/site-header"
-import { ForumContent } from "@/components/pages/forum-content"
-import { useLanguage } from "@/context/language-context"
+import { SiteHeader } from "@/app/components/layout/site-header"
+import { ForumContent } from "@/app/components/pages/forum-content"
+import { useLanguage } from "@/app/context/language-context"
 
 export default function ForumPage() {
   const { t } = useLanguage()

@@ -1,5 +1,5 @@
-import { SiteHeaderWrapper } from "@/components/layout/site-header-wrapper"
-import { SettingsContent } from "@/components/pages/settings-content"
+import { SiteHeaderWrapper } from "@/app/components/layout/site-header-wrapper"
+import { SettingsContent } from "@/app/components/pages/settings-content"
 
 /**
  * 设置页面组件

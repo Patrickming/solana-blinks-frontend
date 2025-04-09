@@ -1,8 +1,8 @@
 "use client"
 
-import { SiteHeader } from "@/components/layout/site-header"
-import { TutorialsContent } from "@/components/pages/tutorials-content"
-import { useLanguage } from "@/context/language-context"
+import { SiteHeader } from "@/app/components/layout/site-header"
+import { TutorialsContent } from "@/app/components/pages/tutorials-content"
+import { useLanguage } from "@/app/context/language-context"
 
 export default function TutorialsPage() {
   const { t } = useLanguage()

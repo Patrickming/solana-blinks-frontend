@@ -32,6 +32,8 @@ const nextConfig = {
   },
   output: 'standalone',
   optimizeFonts: true,
+  // Add critters for CSS optimization
+  optimizeCss: true,
   webpack: (config) => {
     let existingWebpackConfig = config;
     

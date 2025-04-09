@@ -1,5 +1,5 @@
-import { SiteHeaderWrapper } from "@/components/layout/site-header-wrapper"
-import { HomeContentWrapper } from "@/components/home/home-content-wrapper"
+import { SiteHeaderWrapper } from "@/app/components/layout/site-header-wrapper"
+import { HomeContentWrapper } from "@/app/components/home/home-content-wrapper"
 
 export default function Home() {
   return (
