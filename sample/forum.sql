@@ -40,9 +40,9 @@ CREATE TABLE IF NOT EXISTS forum_topics (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时，其主题也删除 (或设为 SET NULL 以保留主题)',
-    FOREIGN KEY (category_id) REFERENCES forum_categories(id) ON DELETE RESTRICT COMMENT '如果分类下有主题，则阻止删除分类',
-    FOREIGN KEY (last_activity_user_id) REFERENCES users(id) ON DELETE SET NULL COMMENT '最后活动用户删除时，设为 NULL',
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES forum_categories(id) ON DELETE RESTRICT,
+    FOREIGN KEY (last_activity_user_id) REFERENCES users(id) ON DELETE SET NULL,
 
     INDEX idx_topic_user (user_id),
     INDEX idx_topic_category (category_id),
@@ -63,9 +63,9 @@ CREATE TABLE IF NOT EXISTS forum_posts (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 
-    FOREIGN KEY (topic_id) REFERENCES forum_topics(id) ON DELETE CASCADE COMMENT '主题删除时，其帖子也删除',
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时，其帖子也删除 (或设为 SET NULL 以保留帖子)',
-    FOREIGN KEY (parent_post_id) REFERENCES forum_posts(id) ON DELETE CASCADE COMMENT '父帖子删除时，其子回复也删除',
+    FOREIGN KEY (topic_id) REFERENCES forum_topics(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
 
     INDEX idx_post_topic (topic_id),
     INDEX idx_post_user (user_id),
@@ -82,8 +82,10 @@ CREATE TABLE IF NOT EXISTS forum_topic_tags (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '关联创建时间',
 
     PRIMARY KEY (topic_id, tag_id) COMMENT '确保每个主题只能应用一个标签一次',
-    FOREIGN KEY (topic_id) REFERENCES forum_topics(id) ON DELETE CASCADE COMMENT '主题删除时，关联也删除',
-    FOREIGN KEY (tag_id) REFERENCES forum_tags(id) ON DELETE CASCADE COMMENT '标签删除时，从主题中移除此标签关联'
+
+    FOREIGN KEY (topic_id) REFERENCES forum_topics(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES forum_tags(id) ON DELETE CASCADE
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主题与标签的关联';
 
 -- 帖子点赞/反应表 (允许同一用户多次点赞同一帖子)
@@ -95,8 +97,8 @@ CREATE TABLE IF NOT EXISTS forum_post_likes (
 
     -- 移除了之前的 PRIMARY KEY (user_id, post_id)
 
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE COMMENT '用户删除时，其点赞记录也删除',
-    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE COMMENT '帖子删除时，其点赞记录也删除',
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
 
     INDEX idx_like_user (user_id), -- 保留索引方便查询
     INDEX idx_like_post (post_id)  -- 保留索引方便查询
