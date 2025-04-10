@@ -251,7 +251,8 @@ const translations = {
     "forum.tabs.discussion": "Discussion",
     "forum.tabs.help": "Help",
     "forum.tabs.showcase": "Showcase",
-    "forum.tabs.announcement": "Announcements",
+    "forum.tabs.announcement": "Announcement",
+    "forum.tabs.feedback": "Feedback",
 
     // 社区 - 类别
     "forum.categories.discussion": "Discussion",
@@ -263,9 +264,16 @@ const translations = {
     // 社区 - 徽章
     "forum.badges.hot": "Hot",
     "forum.badges.official": "Official",
+    "forum.badges.watch": "Watch",
+    "forum.badges.answered": "Answered",
+    "forum.badges.new": "New",
 
     // 社区 - 操作
+    "forum.actions.replies": "Replies",
+    "forum.actions.likes": "Likes",
     "forum.actions.share": "Share",
+    "forum.actions.manageTags": "Manage Tags",
+    "forum.actions.selectTags": "Select Tags",
 
     // 社区 - 验证和成功消息
     "forum.validation.title": "Validation Error",
@@ -509,7 +517,7 @@ const translations = {
     "tutorials.guides.technicalDocs.security.point4": "对于敏感交易，请考虑使用具有短期截止时间的过期Blinks",
     "tutorials.guides.technicalDocs.security.point5": "在批准之前，始终验证钱包中的交易详情",
     "tutorials.guides.technicalDocs.security.conclusion":
-      "我们的平台为所有操作使用安全的、经过审计的智能合约，但用户在执行区块链交易时应始终保持谨慎。",
+      "我们的平台对所有操作都使用经过安全审计的智能合约，但用户在执行区块链交易时应始终保持谨慎。",
 
     // 教程 - 视频
     "tutorials.videos.intro.title": "Solana Blinks简介",
@@ -529,7 +537,7 @@ const translations = {
     "tutorials.videos.developer.title": "开发者集成指南",
     "tutorials.videos.developer.description": "面向开发者的技术演示",
     "tutorials.videos.developer.content":
-      "面向希望使用我们的SDK将Blinks集成到其应用程序中的开发者的高级教程。时长：12:20",
+      "面向希望使用我们的SDK将Blinks集成到其应用程序中的开发人员的高级教程。时长：12:20",
 
     // 教程 - FAQ
     "tutorials.faq.title": "常见问题",
@@ -557,7 +565,7 @@ const translations = {
 
     "tutorials.faq.questions.security.question": "Blinks的安全性如何？",
     "tutorials.faq.questions.security.answer":
-      "Blinks的设计将安全性作为优先考虑因素。所有交易都需要明确的钱包批准，并且从不存储或传输私钥或敏感信息。我们的智能合约已经过领先安全公司的审计，我们采用多层保护来确保所有操作的安全。",
+      "Blinks的设计将安全性作为优先考虑因素。所有交易都需要明确的钱包批准，并且绝不存储或传输私钥或敏感信息。我们的智能合约已经过领先安全公司的审计，我们采用多层保护来确保所有操作的安全。",
 
     // 教程 - 反馈
     "tutorials.feedback.title": "反馈",
@@ -573,7 +581,7 @@ const translations = {
 
     // 社区页面
     "forum.title": "社区论坛",
-    "forum.description": "加入讨论，分享经验，从Solana Blinks社区获取帮助",
+    "forum.description": "参与讨论、分享经验，并从Solana Blinks社区获取帮助",
 
     // 社区 - 搜索
     "forum.search.placeholder": "搜索话题...",
@@ -601,6 +609,7 @@ const translations = {
     "forum.tabs.help": "帮助",
     "forum.tabs.showcase": "展示",
     "forum.tabs.announcement": "公告",
+    "forum.tabs.feedback": "反馈",
 
     // 社区 - 类别
     "forum.categories.discussion": "讨论",
@@ -612,9 +621,16 @@ const translations = {
     // 社区 - 徽章
     "forum.badges.hot": "热门",
     "forum.badges.official": "官方",
+    "forum.badges.watch": "观察",
+    "forum.badges.answered": "已解答",
+    "forum.badges.new": "新",
 
     // 社区 - 操作
+    "forum.actions.replies": "回复",
+    "forum.actions.likes": "点赞",
     "forum.actions.share": "分享",
+    "forum.actions.manageTags": "管理标签",
+    "forum.actions.selectTags": "选择标签",
 
     // 社区 - 验证和成功消息
     "forum.validation.title": "验证错误",

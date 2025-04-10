@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, MouseEvent } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
@@ -21,8 +21,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
-import { MessageSquare, ThumbsUp, Share2, Search, Plus, MessageCircle } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
+import { MessageSquare, ThumbsUp, Share2, Search, Plus, MessageCircle, Tag } from "lucide-react"
 import { useLanguage } from "@/context/language-context"
+
+// Define available tags
+const AVAILABLE_TAGS = [
+  { id: "hot", labelKey: "forum.badges.hot", colorClasses: "bg-red-500/20 text-red-500 border-red-500/30" },
+  { id: "official", labelKey: "forum.badges.official", colorClasses: "bg-primary/20 text-primary border-primary/30" },
+  { id: "watch", labelKey: "forum.badges.watch", colorClasses: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30" }, // Example: Added "Watch" tag
+  { id: "answered", labelKey: "forum.badges.answered", colorClasses: "bg-green-500/20 text-green-600 border-green-500/30" }, // Example: Added "Answered" tag
+]
 
 export function ForumContent() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -30,6 +40,7 @@ export function ForumContent() {
   const [newTopicContent, setNewTopicContent] = useState("")
   const [newTopicCategory, setNewTopicCategory] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedTopicTags, setSelectedTopicTags] = useState<{ [topicId: number]: string[] }>({})
   const { t, currentLanguage } = useLanguage()
   const router = useRouter()
 
@@ -38,6 +49,28 @@ export function ForumContent() {
   // 处理点击话题导航到详情页
   const handleTopicClick = (topicId: number) => {
     router.push(`/forum/${topicId}`)
+  }
+
+  // Handler for tag selection change in Popover
+  const handleTagSelectionChange = (topicId: number, tagId: string, checked: boolean | "indeterminate") => {
+    setSelectedTopicTags(prev => {
+      const currentTags = prev[topicId] || []
+      let newTags: string[]
+      if (checked === true) {
+        // Add tag if checked and not already present
+        newTags = currentTags.includes(tagId) ? currentTags : [...currentTags, tagId]
+      } else {
+        // Remove tag if unchecked
+        newTags = currentTags.filter(tag => tag !== tagId)
+      }
+      // Return a new object to ensure state update
+      const newState = { ...prev, [topicId]: newTags }
+      // Remove entry if no tags are selected to keep state clean
+      if (newState[topicId]?.length === 0) {
+        delete newState[topicId]
+      }
+      return newState
+    })
   }
 
   const handleCreateTopic = () => {
@@ -73,8 +106,6 @@ export function ForumContent() {
       category: "discussion",
       replies: 12,
       likes: 24,
-      isHot: true,
-      isOfficial: false,
     },
     {
       id: 2,
@@ -86,8 +117,6 @@ export function ForumContent() {
       category: "announcement",
       replies: 8,
       likes: 42,
-      isHot: true,
-      isOfficial: true,
     },
     {
       id: 3,
@@ -99,8 +128,6 @@ export function ForumContent() {
       category: "help",
       replies: 5,
       likes: 7,
-      isHot: false,
-      isOfficial: false,
     },
     {
       id: 4,
@@ -112,8 +139,6 @@ export function ForumContent() {
       category: "showcase",
       replies: 3,
       likes: 15,
-      isHot: false,
-      isOfficial: false,
     },
   ]
 
@@ -212,65 +237,105 @@ export function ForumContent() {
 
         <TabsContent value="all" className="space-y-4">
           {filteredTopics.length > 0 ? (
-            filteredTopics.map((topic) => (
-              <Card 
-                key={topic.id} 
-                className="glass-morphism cursor-pointer transition-all hover:shadow-md hover:border-primary/40"
-                onClick={() => handleTopicClick(topic.id)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg">{topic.title}</CardTitle>
-                        {topic.isHot && (
-                          <Badge variant="secondary" className="bg-red-500/20 text-red-500 hover:bg-red-500/30">
-                            {t("forum.badges.hot")}
-                          </Badge>
-                        )}
-                        {topic.isOfficial && (
-                          <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">
-                            {t("forum.badges.official")}
-                          </Badge>
-                        )}
+            filteredTopics.map((topic) => {
+              const currentSelectedTags = selectedTopicTags[topic.id] || []
+              return (
+                <Card 
+                  key={topic.id} 
+                  className="glass-morphism cursor-pointer transition-all hover:shadow-md hover:border-primary/40"
+                  onClick={() => handleTopicClick(topic.id)}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1 flex-grow mr-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <CardTitle className="text-lg mr-1">{topic.title}</CardTitle>
+                          
+                          {/* Display dynamically selected tags */}
+                          {currentSelectedTags.map(tagId => {
+                            const tagInfo = AVAILABLE_TAGS.find(t => t.id === tagId)
+                            if (!tagInfo) return null
+                            return (
+                              <Badge 
+                                key={tagId}
+                                variant="outline" // Use outline variant for better styling consistency with colors
+                                className={`border text-xs ${tagInfo.colorClasses}`} // Apply specific colors and ensure border
+                              >
+                                {t(tagInfo.labelKey)}
+                              </Badge>
+                            )
+                          })}
+
+                          {/* Popover for Tag Selection */}
+                          <Popover>
+                            <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground">
+                                <Tag className="h-4 w-4" />
+                                <span className="sr-only">{t("forum.actions.manageTags")}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-4" onClick={(e) => e.stopPropagation()}>
+                              <div className="grid gap-4">
+                                <h4 className="font-medium leading-none">{t("forum.actions.selectTags")}</h4>
+                                <div className="grid gap-2">
+                                  {AVAILABLE_TAGS.map((tag) => (
+                                    <div key={tag.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`tag-${topic.id}-${tag.id}`}
+                                        checked={currentSelectedTags.includes(tag.id)}
+                                        onCheckedChange={(checked) => handleTagSelectionChange(topic.id, tag.id, checked)}
+                                      />
+                                      <Label
+                                        htmlFor={`tag-${topic.id}-${tag.id}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer" // Added cursor-pointer
+                                      >
+                                        {t(tag.labelKey)}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <CardDescription className="line-clamp-2">{topic.content}</CardDescription>
                       </div>
-                      <CardDescription className="line-clamp-2">{topic.content}</CardDescription>
+                      <Badge variant="outline" className="capitalize shrink-0">
+                        {t(`forum.categories.${topic.category}`)}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="capitalize">
-                      {t(`forum.categories.${topic.category}`)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={topic.authorAvatar} alt={topic.author} />
-                      <AvatarFallback>{topic.author.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{topic.author}</p>
-                      <p className="text-xs text-muted-foreground">{topic.date}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={topic.authorAvatar} alt={topic.author} />
+                        <AvatarFallback>{topic.author.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">{topic.author}</p>
+                        <p className="text-xs text-muted-foreground">{topic.date}</p>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between">
-                  <div className="flex space-x-4">
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{topic.replies}</span>
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
+                    <div className="flex space-x-4">
+                      <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                        <MessageCircle className="h-4 w-4" />
+                        <span>{topic.replies}</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                        <ThumbsUp className="h-4 w-4" />
+                        <span>{topic.likes}</span>
+                      </Button>
+                    </div>
+                    <Button variant="outline" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                      <Share2 className="h-4 w-4 mr-1" />
+                      {t("forum.actions.share")}
                     </Button>
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>{topic.likes}</span>
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                    <Share2 className="h-4 w-4 mr-1" />
-                    {t("forum.actions.share")}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))
+                  </CardFooter>
+                </Card>
+              )
+            })
           ) : (
             <div className="text-center py-12">
               <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
