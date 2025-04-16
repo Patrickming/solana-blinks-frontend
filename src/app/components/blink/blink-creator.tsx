@@ -99,41 +99,54 @@ export default function BlinkCreator() {
     }
   }, [refreshBlink, refresh, recipient])
 
-  // Add Vercel production environment style fixes
+  /**
+   * @effect Vercel 生产环境样式修复
+   * 此 effect 专门用于解决在 Vercel 生产环境中，
+   * @dialectlabs/blinks 组件的某些样式可能不正确或与项目主题冲突的问题。
+   * 它通过动态创建 <style> 标签并注入覆盖样式，以及使用 MutationObserver 来确保样式应用于动态加载的元素。
+   *
+   * 注意：这是一种针对特定部署环境的 hacky 解决方案，如果库或环境发生变化，可能需要调整。
+   */
   useEffect(() => {
-    // Only apply fixes in Vercel production environment
+    // 仅在 Vercel 生产环境应用修复 (通过检查 window.location.host)
     if (typeof window !== 'undefined' && window.location.host.includes('vercel.app')) {
-      // Create a style element
+      // 创建一个新的 style 元素
       const style = document.createElement('style');
+      // 定义需要覆盖的样式规则
       style.textContent = `
+        /* 覆盖 @dialectlabs/blinks 的警告信息样式 */
         .blink-warning {
-          color: #eab308 !important;
+          color: #eab308 !important; /* 使用更符合警告的颜色 */
           padding: 8px !important;
           border-radius: 4px !important;
           margin: 10px 0 !important;
-          background-color: rgba(234, 179, 8, 0.1) !important;
+          background-color: rgba(234, 179, 8, 0.1) !important; /* 使用带透明度的背景 */
         }
         
+        /* 覆盖 @dialectlabs/blinks 的表单确认按钮样式 */
         .blink-form-button {
-          background-color: #4ade80 !important;
-          color: black !important;
+          background-color: #4ade80 !important; /* 使用更醒目的绿色 */
+          color: black !important; /* 确保文本可见 */
           font-weight: 500 !important;
         }
         
+        /* 覆盖 @dialectlabs/blinks 的表单取消按钮样式 */
         .blink-cancel-button {
           background-color: transparent !important;
-          border: 1px solid #e2e8f0 !important;
+          border: 1px solid #e2e8f0 !important; /* 使用边框代替背景色 */
         }
       `;
       
+      // 将 style 元素添加到文档头部
       document.head.appendChild(style);
       
-      // Apply styles to existing elements immediately
+      // 定义一个函数，用于手动将样式应用到已存在的元素上
       const applyStyles = () => {
         const warningElements = document.querySelectorAll('.blink-warning');
         const formButtons = document.querySelectorAll('.blink-form-button');
         const cancelButtons = document.querySelectorAll('.blink-cancel-button');
         
+        // 遍历并应用警告样式
         warningElements.forEach(el => {
           (el as HTMLElement).style.color = '#eab308';
           (el as HTMLElement).style.padding = '8px';
@@ -142,36 +155,38 @@ export default function BlinkCreator() {
           (el as HTMLElement).style.backgroundColor = 'rgba(234, 179, 8, 0.1)';
         });
         
+        // 遍历并应用确认按钮样式
         formButtons.forEach(el => {
           (el as HTMLElement).style.backgroundColor = '#4ade80';
           (el as HTMLElement).style.color = 'black';
           (el as HTMLElement).style.fontWeight = '500';
         });
         
+        // 遍历并应用取消按钮样式
         cancelButtons.forEach(el => {
           (el as HTMLElement).style.backgroundColor = 'transparent';
           (el as HTMLElement).style.border = '1px solid #e2e8f0';
         });
       };
       
-      // Apply styles immediately
+      // 页面加载后立即应用一次样式
       applyStyles();
       
-      // Also apply after a short delay to catch elements that might render after initial load
+      // 稍后再次应用，以捕获可能延迟渲染的元素
       setTimeout(applyStyles, 500);
       setTimeout(applyStyles, 1000);
       
-      // Set up MutationObserver to catch dynamically added elements
+      // 设置 MutationObserver 来监听 DOM 变化，并对新添加或修改的元素应用样式
       const observer = new MutationObserver((mutations) => {
         let shouldApplyStyles = false;
         
         mutations.forEach(mutation => {
-          // Check for added nodes
+          // 检查是否有节点被添加
           if (mutation.addedNodes.length > 0) {
             shouldApplyStyles = true;
           }
           
-          // Check for attribute changes on relevant elements
+          // 检查是否有相关元素的 class 属性发生变化
           if (mutation.type === 'attributes' && 
               ((mutation.target as Element).classList?.contains('blink-warning') ||
                (mutation.target as Element).classList?.contains('blink-form-button') ||
@@ -180,20 +195,21 @@ export default function BlinkCreator() {
           }
         });
         
+        // 如果检测到需要应用样式，则调用 applyStyles
         if (shouldApplyStyles) {
           applyStyles();
         }
       });
       
-      // Start observing with configuration
+      // 开始监听 document.body 的子节点、子树和属性变化
       observer.observe(document.body, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['class']
+        attributeFilter: ['class'] // 只关心 class 属性的变化
       });
       
-      // Clean up function
+      // 清理函数：组件卸载时断开监听并移除 style 标签
       return () => {
         observer.disconnect();
         if (document.head.contains(style)) {
@@ -201,7 +217,7 @@ export default function BlinkCreator() {
         }
       };
     }
-  }, []);
+  }, []); // 空依赖数组，确保此 effect 只运行一次
 
   // 处理表单提交
   const handleSubmit = (e: React.FormEvent) => {

@@ -1,4 +1,12 @@
-// 定义 SolanaLogo 组件，渲染 Solana 的 SVG 标志
+/**
+ * SolanaLogo 组件
+ * 渲染 Solana 标志的 SVG 图形。
+ * 包含 Solana 文字和标志性的渐变图形。
+ *
+ * @param {object} props - 组件属性
+ * @param {string} [props.className] - 可选的 CSS 类名，用于自定义 SVG 的样式。
+ * @returns {JSX.Element} Solana 标志的 SVG 元素。
+ */
 export function SolanaLogo({ className }: { className?: string }) {
   return (
     // SVG 标志，包含 Solana 文字和图形标志

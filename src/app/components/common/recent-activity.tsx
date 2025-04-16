@@ -7,9 +7,29 @@ import { Badge } from "@/app/components/ui/badge"
 // 导入图标
 import { Check, Clock, Link, AlertCircle } from "lucide-react"
 
-// 定义 RecentActivity 组件，显示用户最近的活动
+/**
+ * @typedef {Object} Activity - 活动对象类型定义
+ * @property {number} id - 活动的唯一标识符
+ * @property {string} type - 活动类型 (例如 "Blink Created", "Forum Post")
+ * @property {string} name - 活动的名称或描述
+ * @property {string} timestamp - 活动发生的时间戳 (人类可读格式，例如 "2 hours ago")
+ * @property {'completed' | 'pending' | 'failed'} status - 活动的状态
+ * @property {string} link - 指向相关资源的链接
+ */
+
+/**
+ * RecentActivity 组件
+ * 显示用户最近活动列表的卡片。
+ * 目前使用模拟数据进行展示。
+ *
+ * @component
+ * @returns {JSX.Element} RecentActivity 组件的 JSX 元素。
+ */
 export function RecentActivity() {
-  // 模拟数据：最近活动列表
+  /**
+   * 模拟的最近活动数据。
+   * @type {Activity[]}
+   */
   const activities = [
     {
       id: 1,
@@ -45,7 +65,11 @@ export function RecentActivity() {
     },
   ]
 
-  // 根据活动状态获取对应的图标
+  /**
+   * 根据活动状态返回对应的图标组件。
+   * @param {string} status - 活动状态 ('completed', 'pending', 'failed')
+   * @returns {JSX.Element | null} 对应的 Lucide 图标组件或 null
+   */
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
@@ -71,7 +95,7 @@ export function RecentActivity() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* 遍历活动列表 */}
+          {/* 遍历活动列表并渲染每个活动项 */}
           {activities.map((activity) => (
             <div
               key={activity.id}
@@ -79,7 +103,7 @@ export function RecentActivity() {
             >
               {/* 左侧：活动状态图标和详情 */}
               <div className="flex items-center space-x-4">
-                {/* 状态图标 */}
+                {/* 状态图标容器 */}
                 <div className="rounded-full p-2 bg-primary/10">{getStatusIcon(activity.status)}</div>
                 <div>
                   {/* 活动名称 */}

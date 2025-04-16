@@ -383,6 +383,74 @@ const translations = {
     "settings.saving": "Saving...",
     "settings.saveSuccess": "Settings Saved",
     "settings.saveSuccessDescription": "Your settings have been successfully saved",
+
+    // 添加通用的是/否翻译
+    "common.yes": "Yes",
+    "common.no": "No",
+
+    // 添加 Blink 表单相关的翻译
+    "blink.form.typeSelect": "Select Blink Type",
+    "blink.form.typeTokenSwap": "Token Swap",
+    "blink.form.typeBuyNft": "Buy NFT",
+    "blink.form.typeStaking": "Staking",
+    "blink.form.typeTipping": "Tipping",
+    "blink.form.typeCustom": "Custom",
+    "blink.form.selectSourceToken": "Select Source Token",
+    "blink.form.selectTargetToken": "Select Target Token",
+    "blink.form.amountPlaceholder": "Enter swap amount",
+    "blink.form.slippageDescription": "Set transaction slippage tolerance percentage",
+    "blink.form.deadlineDescription": "Set transaction validity duration",
+    "blink.form.minutes": "minutes",
+
+    // 添加 Blink 预览相关的翻译
+    "blink.preview.sourceToken": "Source Token",
+    "blink.preview.targetToken": "Target Token",
+    "blink.copied": "Copied",
+    "blink.copyFailed": "Copy Failed",
+    "blink.copyFailedDescription": "Could not copy to clipboard",
+    "blink.success": "Blink Created",
+    "blink.successDescription": "Your Blink has been created successfully",
+
+    // 添加代币和NFT相关的翻译
+    "token.success": "Token Created",
+    "token.successDescription": "Your token has been created successfully",
+    "token.previewPlaceholder": "Token preview will appear here",
+    "nft.success": "NFT Created",
+    "nft.successDescription": "Your NFT has been created successfully",
+    "nft.previewPlaceholder": "NFT preview will appear here",
+
+    // Blink开发中提示
+    "blink.comingSoon": "Feature Coming Soon",
+    "blink.typeInDevelopment": "This Blink type is currently under development and not available.",
+    "blink.tryTokenSwap": "Please try the Token Swap Blink type, which is fully implemented.",
+
+    // 代币表单新增字段
+    "token.advancedSettings": "Advanced Settings",
+    "token.initialDistribution": "Initial Distribution",
+    "token.initialDistributionDescription": "How the token is initially distributed upon creation",
+    "token.tokenType": "Token Type",
+    "token.tokenTypeDescription": "Functional type of the token",
+    "token.transferFee": "Transfer Fee Rate",
+    "token.transferFeeDescription": "Percentage fee charged per transfer (0 for no fee)",
+    "token.previewInfo": "Preview Generation Info",
+    "token.address": "Token Address",
+    "token.explorer": "Blockchain Explorer",
+    "token.copied": "Copied",
+    "token.copyFailed": "Copy Failed",
+
+    // NFT表单新增字段
+    "nft.maxSupply": "Max Supply",
+    "nft.maxSupplyDescription": "Set the maximum supply if creating an NFT collection",
+    "nft.symbol": "Symbol",
+    "nft.symbolDescription": "Short symbol identifier for the NFT",
+    "nft.externalUrl": "External URL",
+    "nft.externalUrlDescription": "External website related to the NFT",
+    "nft.creatorShare": "Creator Share",
+    "nft.creatorShareDescription": "Percentage share the creator receives on secondary sales",
+    "nft.previewInfo": "Preview Generation Info",
+    "nft.mintAddress": "NFT Mint Address",
+    "nft.metadataAddress": "Metadata Address",
+    "nft.explorer": "Blockchain Explorer",
   },
   zh: {
     // 导航

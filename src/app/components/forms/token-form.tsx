@@ -12,31 +12,45 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/app/components/ui/label"
 import { toast } from "@/app/components/ui/use-toast"
 import { useEffect, useState } from "react"
+import { Copy } from "lucide-react"
 
-// 代币创建表单的schema
+/**
+ * 代币创建表单的 Zod 验证 schema。
+ * 定义了创建代币所需的各个字段及其验证规则。
+ */
 const tokenFormSchema = z.object({
-  name: z.string().min(1, { message: "请输入代币名称" }),
-  symbol: z.string().min(1, { message: "请输入代币符号" }),
-  totalSupply: z.string().min(1, { message: "请输入总供应量" }),
-  decimals: z.number().min(0).max(18).default(9),
-  mintAuthority: z.string().optional(),
-  freezeAuthority: z.boolean().default(false),
-  initialDistribution: z.enum(["all-to-creator", "airdrop", "liquidity-pool"]).default("all-to-creator"),
-  tokenType: z.enum(["standard", "mintable", "burnable"]).default("standard"),
-  transferFee: z.number().min(0).max(5).default(0),
+  name: z.string().min(1, { message: "请输入代币名称" }), // 代币全名
+  symbol: z.string().min(1, { message: "请输入代币符号" }), // 代币符号/简称
+  totalSupply: z.string().min(1, { message: "请输入总供应量" }), // 总供应量 (字符串以处理大数)
+  decimals: z.number().min(0, { message: "小数位数不能小于0" }).max(18, { message: "小数位数不能超过18" }).default(9), // 代币精度
+  mintAuthority: z.string().optional(), // 铸币权限地址 (可选，默认为创建者)
+  freezeAuthority: z.boolean().default(false), // 是否允许冻结账户 (可选)
+  initialDistribution: z.enum(["all-to-creator", "airdrop", "liquidity-pool"]).default("all-to-creator"), // 初始分配方式
+  tokenType: z.enum(["standard", "mintable", "burnable"]).default("standard"), // 代币特性
+  transferFee: z.number().min(0).max(5, { message: "转账费率不能超过5%" }).default(0), // 转账费率 (百分比)
+  // 代币元数据 (可选)
   metadata: z.object({
-    description: z.string().optional(),
-    image: z.string().url({ message: "请输入有效的图片 URL" }).optional(),
-    externalUrl: z.string().url({ message: "请输入有效的外部 URL" }).optional(),
+    description: z.string().optional(), // 代币描述
+    image: z.string().url({ message: "请输入有效的图片 URL" }).optional(), // 代币图标 URL
+    externalUrl: z.string().url({ message: "请输入有效的外部 URL" }).optional(), // 外部链接，如项目网站
   }),
 })
 
+/**
+ * TokenForm 组件的属性接口。
+ * @property {function} onSubmit - 表单成功提交时的回调函数。
+ * @property {any} [form] - 可选的外部 react-hook-form 实例。
+ */
 interface TokenFormProps {
   onSubmit: (values: z.infer<typeof tokenFormSchema>) => void
   form?: any
 }
 
-// 生成模拟地址
+/**
+ * 生成一个模拟的 Solana 地址。
+ * 仅用于预览目的。
+ * @returns {string} 模拟的 Base58 地址字符串。
+ */
 const generateMockAddress = () => {
   const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
   let result = ""
@@ -46,7 +60,11 @@ const generateMockAddress = () => {
   return result
 }
 
-// 复制到剪贴板
+/**
+ * 将文本复制到剪贴板。
+ * @param {string} text - 要复制的文本。
+ * @param {string} message - 复制成功时显示的提示信息。
+ */
 const copyToClipboard = (text: string, message: string) => {
   navigator.clipboard
     .writeText(text)
@@ -65,13 +83,22 @@ const copyToClipboard = (text: string, message: string) => {
     })
 }
 
+/**
+ * TokenForm 组件
+ * 提供一个表单用于创建和配置新的 SPL 代币。
+ *
+ * @component
+ * @param {TokenFormProps} props - 组件属性
+ * @returns {JSX.Element} TokenForm 组件的 JSX 元素。
+ */
 export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
+  // 状态，用于确保只在客户端渲染，避免水合错误
   const [isClient, setIsClient] = useState(false)
-
   useEffect(() => {
     setIsClient(true)
   }, [])
 
+  // 初始化 react-hook-form，如果外部传入了 form 实例则使用外部的
   const form =
     externalForm ||
     useForm<z.infer<typeof tokenFormSchema>>({
@@ -94,6 +121,9 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
       },
     })
 
+  // 模拟生成的代币地址，用于预览
+  const mockTokenAddress = isClient ? generateMockAddress() : ""
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -103,6 +133,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
             <CardDescription>在 Solana 区块链上创建您自己的代币</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* 代币名称字段 */}
             <FormField
               control={form.control}
               name="name"
@@ -118,6 +149,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
               )}
             />
 
+            {/* 代币符号字段 */}
             <FormField
               control={form.control}
               name="symbol"
@@ -133,6 +165,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
               )}
             />
 
+            {/* 总供应量字段 */}
             <FormField
               control={form.control}
               name="totalSupply"
@@ -140,7 +173,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                 <FormItem>
                   <FormLabel>总供应量 *</FormLabel>
                   <FormControl>
-                    <Input placeholder="例如：1000000" {...field} />
+                    <Input type="number" placeholder="例如：1000000" {...field} />
                   </FormControl>
                   <FormDescription>代币的总发行量</FormDescription>
                   <FormMessage />
@@ -148,6 +181,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
               )}
             />
 
+            {/* 小数位数字段 */}
             <FormField
               control={form.control}
               name="decimals"
@@ -169,9 +203,11 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
               )}
             />
 
-            <div className="space-y-4 border-t pt-4">
+            {/* 高级设置区域 */}
+            <div className="space-y-4 border-t pt-4 mt-6">
               <h3 className="text-lg font-medium">高级设置</h3>
 
+              {/* 初始分配方式字段 */}
               <FormField
                 control={form.control}
                 name="initialDistribution"
@@ -186,8 +222,8 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="all-to-creator">全部分配给创建者</SelectItem>
-                        <SelectItem value="airdrop">空投给指定地址</SelectItem>
-                        <SelectItem value="liquidity-pool">创建流动性池</SelectItem>
+                        <SelectItem value="airdrop">空投给指定地址 (暂不支持)</SelectItem>
+                        <SelectItem value="liquidity-pool">创建流动性池 (暂不支持)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>代币创建后的初始分配方式</FormDescription>
@@ -196,6 +232,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                 )}
               />
 
+              {/* 代币类型字段 */}
               <FormField
                 control={form.control}
                 name="tokenType"
@@ -210,8 +247,8 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="standard">标准代币</SelectItem>
-                        <SelectItem value="mintable">可增发代币</SelectItem>
-                        <SelectItem value="burnable">可销毁代币</SelectItem>
+                        <SelectItem value="mintable">可增发代币 (暂不支持)</SelectItem>
+                        <SelectItem value="burnable">可销毁代币 (暂不支持)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>代币的功能类型</FormDescription>
@@ -220,6 +257,7 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                 )}
               />
 
+              {/* 转账费率字段 */}
               <FormField
                 control={form.control}
                 name="transferFee"
@@ -240,223 +278,131 @@ export function TokenForm({ onSubmit, form: externalForm }: TokenFormProps) {
                   </FormItem>
                 )}
               />
+
+              {/* 铸币权限地址字段 */}
+              <FormField
+                control={form.control}
+                name="mintAuthority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>铸币权限地址（可选）</FormLabel>
+                    <FormControl>
+                      <Input placeholder="留空则默认为您的钱包地址" {...field} />
+                    </FormControl>
+                    <FormDescription>拥有增发权限的地址</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* 冻结权限开关字段 (隐藏，因为默认值为 false) */}
+              {/* <FormField
+                control={form.control}
+                name="freezeAuthority"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>允许冻结账户</FormLabel>
+                      <FormDescription>是否允许冻结持有此代币的账户</FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              /> */}
+            </div>
+
+            {/* 元数据设置区域 */}
+            <div className="space-y-4 border-t pt-4 mt-6">
+              <h3 className="text-lg font-medium">元数据（可选）</h3>
+
+              {/* 代币描述字段 */}
+              <FormField
+                control={form.control}
+                name="metadata.description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>描述</FormLabel>
+                    <FormControl>
+                      <Input placeholder="您的代币的简短描述" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* 代币图标 URL 字段 */}
+              <FormField
+                control={form.control}
+                name="metadata.image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>图标 URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://.../icon.png" {...field} />
+                    </FormControl>
+                    <FormDescription>代币的 Logo 或图标链接</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* 外部链接 URL 字段 */}
+              <FormField
+                control={form.control}
+                name="metadata.externalUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>外部链接</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://.../project-website" {...field} />
+                    </FormControl>
+                    <FormDescription>项目网站或其他相关链接</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </CardContent>
 
-          <div className="mt-6 space-y-4 border-t pt-4">
+          {/* 预览生成信息区域 */}
+          <div className="px-6 pb-6 mt-6 space-y-4 border-t pt-4">
             <h3 className="text-lg font-medium">预览生成信息</h3>
 
             <div className="rounded-lg border bg-muted/30 overflow-hidden">
               <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 p-3 border-b">
-                <h4 className="font-medium flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-primary"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path>
-                    <line x1="8" y1="16" x2="8.01" y2="16"></line>
-                    <line x1="8" y1="20" x2="8.01" y2="20"></line>
-                    <line x1="12" y1="18" x2="12.01" y2="18"></line>
-                    <line x1="12" y1="22" x2="12.01" y2="22"></line>
-                    <line x1="16" y1="16" x2="16.01" y2="16"></line>
-                    <line x1="16" y1="20" x2="16.01" y2="20"></line>
-                  </svg>
-                  Solana区块链信息
-                </h4>
+                <p className="text-sm font-medium text-center">代币信息概览</p>
               </div>
-
-              <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-muted-foreground">代币地址</Label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => copyToClipboard(generateMockAddress(), "代币地址已复制到剪贴板")}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        复制
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-muted-foreground"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <polyline points="21 15 16 10 5 21"></polyline>
-                      </svg>
-                    </div>
-                    <Input readOnly value={generateMockAddress()} className="font-mono text-xs pl-10 bg-muted/50" />
+              <div className="p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">代币地址:</span>
+                  <div className="flex items-center space-x-1">
+                    <span className="font-mono truncate max-w-[180px]">{mockTokenAddress}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5"
+                      onClick={() => copyToClipboard(mockTokenAddress, "模拟代币地址已复制")}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-muted-foreground">元数据地址</Label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => copyToClipboard(generateMockAddress(), "元数据地址已复制到剪贴板")}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                        </svg>
-                        复制
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-muted-foreground"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                      </svg>
-                    </div>
-                    <Input readOnly value={generateMockAddress()} className="font-mono text-xs pl-10 bg-muted/50" />
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">预估创建费用:</span>
+                  <span className="font-medium">~0.002 SOL</span>
                 </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-muted-foreground">区块链浏览器</Label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() =>
-                          window.open(`https://explorer.solana.com/address/${generateMockAddress()}`, "_blank")
-                        }
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                          <polyline points="15 3 21 3 21 9"></polyline>
-                          <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                        查看
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 text-muted-foreground"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                      </svg>
-                    </div>
-                    <Input
-                      readOnly
-                      value={`https://explorer.solana.com/address/${generateMockAddress()}`}
-                      className="font-mono text-xs pl-10 bg-muted/50"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted/30 p-3 border-t">
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">网络:</span>
-                    <span className="ml-2 inline-flex items-center text-green-500">
-                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
-                      Mainnet
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">交易费:</span>
-                    <span className="ml-2">~0.000005 SOL</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">确认时间:</span>
-                    <span className="ml-2">~400ms</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">当前区块:</span>
-                    <span className="ml-2">219,453,891</span>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">创建者地址:</span>
+                  <span className="font-medium">您的钱包地址</span>
                 </div>
               </div>
             </div>
           </div>
 
           <CardFooter>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90">
               创建代币
             </Button>
           </CardFooter>
