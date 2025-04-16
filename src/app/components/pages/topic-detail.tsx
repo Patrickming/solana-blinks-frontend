@@ -19,6 +19,10 @@ interface TopicDetailProps {
   topicId: string
 }
 
+/**
+ * 话题详情组件
+ * 用于显示论坛话题的详细内容和评论。
+ */
 export function TopicDetail({ topicId }: TopicDetailProps) {
   const [commentText, setCommentText] = useState("")
   const { t } = useLanguage()

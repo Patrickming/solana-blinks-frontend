@@ -6,6 +6,10 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 上下文菜单组件
+ * 通常由右键点击触发，显示相关操作选项。
+ */
 const ContextMenu = ContextMenuPrimitive.Root
 
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger

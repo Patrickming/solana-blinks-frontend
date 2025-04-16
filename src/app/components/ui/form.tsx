@@ -15,6 +15,10 @@ import {
 import { cn } from "@/app/lib/utils"
 import { Label } from "@/app/components/ui/label"
 
+/**
+ * 表单组件及其相关子组件
+ * 基于 react-hook-form，提供表单状态管理和字段验证。
+ */
 const Form = FormProvider
 
 type FormFieldContextValue<

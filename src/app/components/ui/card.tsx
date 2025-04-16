@@ -2,6 +2,10 @@ import * as React from "react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 卡片组件
+ * 用于组织和展示内容的容器。
+ */
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
   <div
     ref={ref}

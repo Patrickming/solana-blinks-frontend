@@ -7,6 +7,10 @@ import { X } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 滑出式面板组件
+ * 与 Drawer 类似，但基于 Dialog 实现，通常用于桌面端。
+ */
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger

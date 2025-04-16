@@ -5,6 +5,10 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 抽屉组件
+ * 用于从屏幕边缘滑出的内容面板，常用于移动端导航或菜单。
+ */
 const Drawer = ({
   shouldScaleBackground = true,
   ...props

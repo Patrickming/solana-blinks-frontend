@@ -2,6 +2,10 @@ import * as React from "react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 输入框组件
+ * 用于接收用户文本输入。
+ */
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
     return (

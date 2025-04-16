@@ -10,6 +10,10 @@ import {
   ToastViewport,
 } from "@/app/components/ui/toast"
 
+/**
+ * Toaster 组件
+ * 负责渲染由 useToast hook 管理的所有 Toast 消息。
+ */
 export function Toaster() {
   const { toasts } = useToast()
 

@@ -5,6 +5,10 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 导航菜单组件
+ * 用于创建复杂的下拉导航菜单。
+ */
 const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root>

@@ -5,7 +5,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 // 导入侧边栏上下文
-import { useSidebar } from "@/app/components/sidebar-provider"
+import { useSidebar } from "@/app/context/sidebar-context"
 // 导入 UI 组件
 import { Button } from "@/app/components/ui/button"
 import { ScrollArea } from "@/app/components/ui/scroll-area"
@@ -14,7 +14,10 @@ import { Home, Link2, BookOpen, Layers, MessageSquare, User, Settings, Menu, X }
 // 导入工具函数
 import { cn } from "@/app/lib/utils"
 
-// 定义 Sidebar 组件
+/**
+ * 侧边栏导航组件
+ * 提供应用的主要导航链接，具有响应式设计，可在移动设备上折叠。
+ */
 export function Sidebar() {
   const pathname = usePathname() // 获取当前路径
   const { isOpen, toggleSidebar } = useSidebar() // 从侧边栏上下文获取状态和方法
@@ -22,37 +25,37 @@ export function Sidebar() {
   // 定义导航路由
   const routes = [
     {
-      name: "Dashboard", // 显示名称
-      path: "/", // 路径
-      icon: Home, // 图标组件
+      name: "仪表盘",
+      path: "/",
+      icon: Home,
     },
     {
-      name: "Blink Creator",
+      name: "Blink 创建器",
       path: "/blink",
       icon: Link2,
     },
     {
-      name: "Tutorials",
+      name: "教程",
       path: "/tutorials",
       icon: BookOpen,
     },
     {
-      name: "Showcase",
+      name: "案例展示",
       path: "/showcase",
       icon: Layers,
     },
     {
-      name: "Forum",
+      name: "论坛",
       path: "/forum",
       icon: MessageSquare,
     },
     {
-      name: "Profile",
+      name: "个人资料",
       path: "/profile",
       icon: User,
     },
     {
-      name: "Settings",
+      name: "设置",
       path: "/settings",
       icon: Settings,
     },
@@ -72,7 +75,7 @@ export function Sidebar() {
       <aside
         className={cn(
           // 基础样式：固定定位、全高、左侧、z-index、宽度、变换、背景色、边框
-          "fixed inset-y-0 left-0 z-50 w-64 transform bg-solana-blue border-r border-border/50 transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform bg-card border-r border-border/50 transition-transform duration-300 ease-in-out md:relative md:translate-x-0",
           // 条件样式：根据 isOpen 状态决定是否显示
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
@@ -108,7 +111,7 @@ export function Sidebar() {
                     "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     // 条件样式：当前路径匹配时使用渐变背景和白色文本，否则使用次要文本颜色
                     pathname === route.path
-                      ? "bg-solana-gradient text-white"
+                      ? "bg-gradient-to-r from-[#9945FF] to-[#14F195] text-white shadow-sm"
                       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
@@ -125,12 +128,12 @@ export function Sidebar() {
 
       {/* 移动设备上的侧边栏切换按钮，固定在右下角 */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={toggleSidebar}
-        className="fixed bottom-4 right-4 z-40 rounded-full bg-primary shadow-lg md:hidden"
+        className="fixed bottom-4 right-4 z-40 rounded-full bg-background shadow-lg md:hidden"
       >
-        <Menu className="h-5 w-5" />
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
     </>
   )

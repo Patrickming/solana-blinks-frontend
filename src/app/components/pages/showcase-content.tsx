@@ -11,6 +11,11 @@ import { Textarea } from "@/app/components/ui/textarea"
 import { useToast } from "@/app/components/ui/use-toast"
 import { Link, ThumbsUp, MessageSquare, ExternalLink, Search } from "lucide-react"
 
+/**
+ * ShowcaseContent 组件
+ * 用于展示 Solana Blinks 的实际应用案例和成功故事。
+ * 提供搜索、分类和查看案例详情的功能。
+ */
 export function ShowcaseContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [comment, setComment] = useState("")
@@ -19,66 +24,66 @@ export function ShowcaseContent() {
   const handleCommentSubmit = () => {
     if (!comment.trim()) {
       toast({
-        title: "Empty Comment",
-        description: "Please enter a comment before submitting",
+        title: "评论不能为空",
+        description: "提交前请输入评论内容",
         variant: "destructive",
       })
       return
     }
 
     toast({
-      title: "Comment Submitted",
-      description: "Your comment has been added to the case study",
+      title: "评论已提交",
+      description: "您的评论已添加到案例研究中",
     })
     setComment("")
   }
 
-  // Mock data for case studies
+  // 模拟案例研究数据
   const caseStudies = [
     {
       id: 1,
-      title: "NFT Collection Launch",
-      description: "How a digital artist used Blinks to simplify NFT purchases during a collection launch",
+      title: "NFT 藏品发行",
+      description: "一位数字艺术家如何使用 Blinks 简化 NFT 购买流程",
       category: "nft",
-      author: "Elena M.",
+      author: "埃琳娜·M",
       authorAvatar: "/placeholder.svg?height=40&width=40",
-      date: "2 weeks ago",
+      date: "2 周前",
       likes: 42,
       comments: 8,
       link: "#",
     },
     {
       id: 2,
-      title: "Token Swap Integration",
-      description: "A DeFi platform that integrated Blinks to streamline token swaps for users",
+      title: "代币交换集成",
+      description: "一个 DeFi 平台集成 Blinks 以简化用户代币交换流程",
       category: "defi",
-      author: "Michael K.",
+      author: "迈克尔·K",
       authorAvatar: "/placeholder.svg?height=40&width=40",
-      date: "1 month ago",
+      date: "1 个月前",
       likes: 36,
       comments: 5,
       link: "#",
     },
     {
       id: 3,
-      title: "Community Airdrop",
-      description: "How a DAO used Blinks to distribute token airdrops to community members",
+      title: "社区空投",
+      description: "一个 DAO 如何使用 Blinks 向社区成员分发代币空投",
       category: "dao",
-      author: "Sarah J.",
+      author: "莎拉·J",
       authorAvatar: "/placeholder.svg?height=40&width=40",
-      date: "3 weeks ago",
+      date: "3 周前",
       likes: 29,
       comments: 12,
       link: "#",
     },
     {
       id: 4,
-      title: "Gaming Marketplace",
-      description: "A Solana game that implemented Blinks for in-game asset purchases",
+      title: "游戏市场",
+      description: "一个 Solana 游戏实现 Blinks 用于游戏内资产购买",
       category: "gaming",
-      author: "David L.",
+      author: "大卫·L",
       authorAvatar: "/placeholder.svg?height=40&width=40",
-      date: "5 days ago",
+      date: "5 天前",
       likes: 51,
       comments: 7,
       link: "#",
@@ -95,8 +100,8 @@ export function ShowcaseContent() {
   return (
     <div className="space-y-6">
       <div className="glass-morphism rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-2">Case Showcase</h2>
-        <p className="text-muted-foreground">Explore real-world applications and success stories using Solana Blinks</p>
+        <h2 className="text-2xl font-bold mb-2">案例展示</h2>
+        <p className="text-muted-foreground">探索使用 Solana Blinks 的实际应用和成功故事</p>
       </div>
 
       <div className="flex items-center space-x-2 mb-6">
@@ -104,22 +109,22 @@ export function ShowcaseContent() {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search case studies..."
+            placeholder="搜索案例研究..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <Button variant="outline">Filters</Button>
+        <Button variant="outline">筛选</Button>
       </div>
 
       <Tabs defaultValue="all">
         <TabsList className="grid w-full grid-cols-5 mb-6">
-          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="all">全部</TabsTrigger>
           <TabsTrigger value="defi">DeFi</TabsTrigger>
           <TabsTrigger value="nft">NFT</TabsTrigger>
           <TabsTrigger value="dao">DAO</TabsTrigger>
-          <TabsTrigger value="gaming">Gaming</TabsTrigger>
+          <TabsTrigger value="gaming">游戏</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
@@ -174,7 +179,7 @@ export function ShowcaseContent() {
                     </div>
                     <Button variant="outline" size="sm" className="flex items-center space-x-1">
                       <ExternalLink className="h-4 w-4 mr-1" />
-                      View Case Study
+                      查看案例
                     </Button>
                   </CardFooter>
                 </Card>
@@ -182,15 +187,15 @@ export function ShowcaseContent() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No case studies found matching your search.</p>
+              <p className="text-muted-foreground">未找到与您搜索匹配的案例研究。</p>
               <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2">
-                Clear search
+                清除搜索
               </Button>
             </div>
           )}
         </TabsContent>
 
-        {/* Other category tabs would filter by category */}
+        {/* 其他分类选项卡将按类别筛选 */}
         <TabsContent value="defi" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredCaseStudies

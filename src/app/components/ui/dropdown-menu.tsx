@@ -6,6 +6,10 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 下拉菜单组件
+ * 用于显示一个由触发器激活的选项列表。
+ */
 const DropdownMenu = DropdownMenuPrimitive.Root
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger

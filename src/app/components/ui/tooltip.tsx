@@ -5,6 +5,10 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 工具提示组件
+ * 当用户悬停在元素上时显示额外信息。
+ */
 const TooltipProvider = TooltipPrimitive.Provider
 
 const Tooltip = TooltipPrimitive.Root

@@ -6,6 +6,10 @@ import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 下拉选择框组件
+ * 用于从选项列表中选择一个值。
+ */
 const Select = SelectPrimitive.Root
 
 const SelectGroup = SelectPrimitive.Group

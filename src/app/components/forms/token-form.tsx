@@ -15,6 +15,12 @@ import { useEffect, useState } from "react"
 import { Copy } from "lucide-react"
 
 /**
+ * TokenForm 组件
+ * 提供一个表单用于创建和配置新的 SPL 代币。
+ * 包含代币名称、符号、供应量、小数位数、权限等设置。
+ */
+
+/**
  * 代币创建表单的 Zod 验证 schema。
  * 定义了创建代币所需的各个字段及其验证规则。
  */

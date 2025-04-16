@@ -2,6 +2,10 @@ import * as React from "react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 表格组件
+ * 用于展示结构化数据。
+ */
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>

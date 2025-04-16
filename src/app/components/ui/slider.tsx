@@ -5,6 +5,10 @@ import * as SliderPrimitive from "@radix-ui/react-slider"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 滑块组件
+ * 用于在一个范围内选择数值。
+ */
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>

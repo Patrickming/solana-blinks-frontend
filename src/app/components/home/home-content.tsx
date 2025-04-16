@@ -12,6 +12,10 @@ import { useAuth } from "@/app/context/auth-context"
 import { useLanguage } from "@/app/context/language-context"
 import { SUPPORTED_WALLETS } from "@/app/lib/constants"
 
+/**
+ * 首页内容组件
+ * 包含英雄区域、轮播、统计、分类等。
+ */
 export function HomeContent() {
   // State management
   const [currentSlide, setCurrentSlide] = useState(0)

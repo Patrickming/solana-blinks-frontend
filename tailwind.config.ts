@@ -53,7 +53,7 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Solana specific colors
+        // Solana 相关颜色
         solana: {
           blue: "hsl(var(--solana-blue))",
           purple: "hsl(var(--solana-purple))",

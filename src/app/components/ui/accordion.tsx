@@ -6,6 +6,10 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 手风琴组件
+ * 用于垂直堆叠内容的折叠面板。
+ */
 const Accordion = AccordionPrimitive.Root
 
 const AccordionItem = React.forwardRef<

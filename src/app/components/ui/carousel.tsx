@@ -9,6 +9,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 import { Button } from "@/app/components/ui/button"
 
+/**
+ * 轮播组件
+ * 用于水平或垂直滚动显示内容项。
+ */
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
 type CarouselOptions = UseCarouselParameters[0]

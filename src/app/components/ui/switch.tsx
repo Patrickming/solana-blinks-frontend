@@ -5,6 +5,10 @@ import * as SwitchPrimitives from "@radix-ui/react-switch"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 开关组件
+ * 用于在两种状态之间切换。
+ */
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>

@@ -5,6 +5,10 @@ import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 标签页组件
+ * 用于组织内容到可切换的视图中。
+ */
 const Tabs = TabsPrimitive.Root
 
 const TabsList = React.forwardRef<

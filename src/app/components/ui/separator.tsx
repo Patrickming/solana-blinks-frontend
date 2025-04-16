@@ -5,6 +5,10 @@ import * as SeparatorPrimitive from "@radix-ui/react-separator"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 分隔线组件
+ * 用于在视觉上分隔内容或元素组。
+ */
 const Separator = React.forwardRef<
   React.ElementRef<typeof SeparatorPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>

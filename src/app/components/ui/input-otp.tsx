@@ -6,6 +6,10 @@ import { Dot } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 一次性密码（OTP）输入框组件
+ * 用于输入验证码等场景。
+ */
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
   React.ComponentPropsWithoutRef<typeof OTPInput>

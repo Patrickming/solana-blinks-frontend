@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
@@ -56,7 +56,6 @@ export function AuthDialog({
     password: "",
     confirmPassword: "",
   })
-  const [error, setError] = useState<string | null>(null)
 
   // Hooks
   const { toast } = useToast()
@@ -70,33 +69,29 @@ export function AuthDialog({
    */
   useEffect(() => {
     if (open) {
-      setError(null)
+      // 如果用户需要账号设置，强制使用设置标签
       if (needsAccountSetup && user) {
-        console.log("[AuthDialog] Needs account setup, forcing setup tab.")
         setActiveTab("setup")
-        setFormData((prev) => ({
-          ...prev,
+        setFormData({
+          ...formData,
           username: user.username || "",
-        }))
+        })
       } else {
-        const initialTab = mode === "wallet" && connected ? "login" : mode
-        setActiveTab(initialTab)
-        console.log(`[AuthDialog] Opened with mode: ${mode}, initial tab set to: ${initialTab}`)
+        setActiveTab(mode === "wallet" ? "wallet" : mode)
       }
     } else {
-      console.log("[AuthDialog] Dialog closed, resetting form data.")
+      // 对话框关闭时重置表单数据
       setFormData({
         email: "",
         username: "",
         password: "",
         confirmPassword: "",
       })
+      // 重置密码可见性状态
       setShowPassword(false)
       setShowConfirmPassword(false)
-      setIsLoading(false)
-      setError(null)
     }
-  }, [open, mode, needsAccountSetup, user, connected])
+  }, [open, mode, needsAccountSetup, user])
 
   /**
    * 处理输入变化
@@ -105,14 +100,11 @@ export function AuthDialog({
    * @param field - 字段名
    * @param value - 字段值
    */
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }))
-    if (error) {
-      setError(null)
-    }
   }
 
   /**
@@ -123,32 +115,33 @@ export function AuthDialog({
    */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    console.log("[AuthDialog] Attempting login...")
 
+    // 验证表单
     if (!formData.email || !formData.password) {
-      const msg = "请填写邮箱和密码"
-      setError(msg)
-      toast({ title: "输入错误", description: msg, variant: "destructive" })
+      toast({
+        title: "输入错误",
+        description: "请填写所有必填字段",
+        variant: "destructive",
+      })
       return
     }
 
     setIsLoading(true)
+
     try {
       await login(formData.email, formData.password)
-      console.log("[AuthDialog] Login successful.")
-      toast({ title: "登录成功", description: "欢迎回来！" })
+
       onOpenChange(false)
 
-      if (redirectUrl && !preventRedirect) {
-        console.log(`[AuthDialog] Redirecting to: ${redirectUrl}`)
+      if (redirectUrl) {
         router.push(redirectUrl)
       }
-    } catch (err: any) {
-      const errorMsg = err.message || "登录时发生未知错误，请稍后重试"
-      console.error("[AuthDialog] Login failed:", errorMsg)
-      setError(errorMsg)
-      toast({ title: "登录失败", description: errorMsg, variant: "destructive" })
+    } catch (error: any) {
+      toast({
+        title: "登录失败",
+        description: error.message || "请检查您的凭据并重试",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -162,34 +155,42 @@ export function AuthDialog({
    */
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    console.log("[AuthDialog] Attempting registration...")
 
+    // 验证表单
     if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword) {
-      const msg = "请填写所有必填项"
-      setError(msg)
-      toast({ title: "输入错误", description: msg, variant: "destructive" })
+      toast({
+        title: "输入错误",
+        description: "请填写所有必填字段",
+        variant: "destructive",
+      })
       return
     }
+
     if (formData.password !== formData.confirmPassword) {
-      const msg = "两次输入的密码不一致"
-      setError(msg)
-      toast({ title: "密码错误", description: msg, variant: "destructive" })
+      toast({
+        title: "密码不匹配",
+        description: "请确保两次输入的密码相同",
+        variant: "destructive",
+      })
       return
     }
 
     setIsLoading(true)
+
     try {
       await register(formData.email, formData.username, formData.password)
-      console.log("[AuthDialog] Registration successful.")
-      toast({ title: "注册成功", description: "欢迎加入！请登录。" })
-      setActiveTab("login")
-      setFormData((prev) => ({ ...prev, password: "", confirmPassword: "" }))
-    } catch (err: any) {
-      const errorMsg = err.message || "注册时发生未知错误，请稍后重试"
-      console.error("[AuthDialog] Registration failed:", errorMsg)
-      setError(errorMsg)
-      toast({ title: "注册失败", description: errorMsg, variant: "destructive" })
+
+      onOpenChange(false)
+
+      if (redirectUrl) {
+        router.push(redirectUrl)
+      }
+    } catch (error: any) {
+      toast({
+        title: "注册失败",
+        description: error.message || "请检查您的输入并重试",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -204,38 +205,42 @@ export function AuthDialog({
    */
   const handleAccountSetup = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
-    console.log("[AuthDialog] Attempting account setup...")
 
+    // 验证表单
     if (!formData.email || !formData.password || !formData.confirmPassword) {
-      const msg = "请填写邮箱和密码信息以完成设置"
-      setError(msg)
-      toast({ title: "输入错误", description: msg, variant: "destructive" })
+      toast({
+        title: "输入错误",
+        description: "请填写所有必填字段",
+        variant: "destructive",
+      })
       return
     }
+
     if (formData.password !== formData.confirmPassword) {
-      const msg = "两次输入的密码不一致"
-      setError(msg)
-      toast({ title: "密码错误", description: msg, variant: "destructive" })
+      toast({
+        title: "密码不匹配",
+        description: "请确保两次输入的密码相同",
+        variant: "destructive",
+      })
       return
     }
 
     setIsLoading(true)
+
     try {
       await completeAccountSetup(formData.email, formData.password)
-      console.log("[AuthDialog] Account setup successful.")
-      toast({ title: "账户设置成功", description: "您的账户信息已完善！" })
+
       onOpenChange(false)
 
-      if (redirectUrl && !preventRedirect) {
-        console.log(`[AuthDialog] Redirecting after setup to: ${redirectUrl}`)
+      if (redirectUrl) {
         router.push(redirectUrl)
       }
-    } catch (err: any) {
-      const errorMsg = err.message || "账户设置时发生未知错误，请稍后重试"
-      console.error("[AuthDialog] Account setup failed:", errorMsg)
-      setError(errorMsg)
-      toast({ title: "设置失败", description: errorMsg, variant: "destructive" })
+    } catch (error: any) {
+      toast({
+        title: "设置失败",
+        description: error.message || "请检查您的输入并重试",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
@@ -257,6 +262,7 @@ export function AuthDialog({
    */
   const handleDialogClose = (isOpen: boolean) => {
     onOpenChange(isOpen)
+    // 如果设置了阻止重定向，则不执行任何重定向操作
     if (!isOpen && !preventRedirect && !isAuthenticated) {
       router.push("/")
     }
@@ -265,6 +271,7 @@ export function AuthDialog({
   // 检查钱包连接状态，如果已连接则关闭对话框
   useEffect(() => {
     if (connected && address && activeTab === "wallet") {
+      // 给用户一点时间看到连接成功
       const timer = setTimeout(() => {
         onOpenChange(false)
 
@@ -277,243 +284,322 @@ export function AuthDialog({
     }
   }, [connected, address, activeTab, onOpenChange, redirectUrl, router])
 
-  // 根据当前模式确定对话框标题和描述
-  const getDialogTexts = () => {
-    switch (activeTab) {
-      case "register":
-        return { title: "创建您的账户", description: "加入平台，开始探索 Solana Blinks！" }
-      case "wallet":
-        return { title: "连接您的钱包", description: "使用 Solana 钱包快速访问平台。" }
-      case "setup":
-        return { title: "完善账户信息", description: "请设置邮箱和密码以完成账户创建。" }
-      case "login":
-      default:
-        return {
-          title: requiredFeature ? `需要登录以访问 ${requiredFeature}` : "登录您的账户",
-          description: requiredFeature ? "请登录或注册以继续。" : "欢迎回来！请输入您的凭据。",
-        }
-    }
-  }
-
-  const { title, description } = getDialogTexts()
-
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {updateDescription && <DialogDescription>{description}</DialogDescription>}
+          <DialogTitle>{activeTab === "setup" ? "完成账号设置" : "账户访问"}</DialogTitle>
+          <DialogDescription>
+            {activeTab === "setup"
+              ? "设置邮箱和密码可以让您在未来使用邮箱登录"
+              : "登录或注册以访问更多功能，或直接连接您的钱包"}
+          </DialogDescription>
         </DialogHeader>
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
+        {/* 功能需求提示 */}
+        {requiredFeature && (
+          <Alert className="bg-primary/10 border-primary/20 mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>您需要登录才能{requiredFeature}</AlertDescription>
           </Alert>
         )}
 
-        {activeTab === "setup" ? (
-          <form onSubmit={handleAccountSetup} className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="setup-username">用户名 (可选)</Label>
-              <Input
-                id="setup-username"
-                type="text"
-                placeholder="设置您的用户名"
-                value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="setup-email">邮箱 *</Label>
-              <Input
-                id="setup-email"
-                type="email"
-                placeholder="you@example.com"
-                required
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2 relative">
-              <Label htmlFor="setup-password">密码 *</Label>
-              <Input
-                id="setup-password"
-                type={showPassword ? "text" : "password"}
-                placeholder="输入您的密码"
-                required
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-[28px] h-7 w-7"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "隐藏密码" : "显示密码"}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <div className="space-y-2 relative">
-              <Label htmlFor="setup-confirm-password">确认密码 *</Label>
-              <Input
-                id="setup-confirm-password"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="再次输入您的密码"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-[28px] h-7 w-7"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                aria-label={showConfirmPassword ? "隐藏密码" : "显示密码"}
-              >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              完成设置
-            </Button>
-          </form>
-        ) : (
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="pt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="login">登录</TabsTrigger>
-              <TabsTrigger value="register">注册</TabsTrigger>
-              <TabsTrigger value="wallet">钱包连接</TabsTrigger>
-            </TabsList>
+        {/* 标签页 */}
+        <Tabs
+          defaultValue={activeTab}
+          value={activeTab}
+          onValueChange={needsAccountSetup ? undefined : setActiveTab}
+          className="mt-4"
+        >
+          <TabsList className={`grid w-full ${needsAccountSetup ? "hidden" : "grid-cols-3"}`}>
+            <TabsTrigger value="login">登录</TabsTrigger>
+            <TabsTrigger value="register">注册</TabsTrigger>
+            <TabsTrigger value="wallet">钱包</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">邮箱</Label>
+          {/* 登录标签页 */}
+          <TabsContent value="login" className="space-y-4 pt-4">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">邮箱</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">密码</Label>
+                <div className="relative">
                   <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 relative">
-                  <Label htmlFor="login-password">密码</Label>
-                  <Input
-                    id="login-password"
+                    id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="输入您的密码"
-                    required
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
+                    required
                   />
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-[28px] h-7 w-7"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">{showPassword ? "隐藏密码" : "显示密码"}</span>
                   </Button>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  登录
-                </Button>
-              </form>
-            </TabsContent>
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    登录中...
+                  </>
+                ) : (
+                  "登录"
+                )}
+              </Button>
+            </form>
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">没有账号？</span>{" "}
+              <Button variant="link" className="p-0" onClick={() => setActiveTab("register")}>
+                立即注册
+              </Button>
+            </div>
+          </TabsContent>
 
-            <TabsContent value="register">
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="register-email">邮箱 *</Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-username">用户名 *</Label>
-                  <Input
-                    id="register-username"
-                    type="text"
-                    placeholder="选择一个用户名"
-                    required
-                    value={formData.username}
-                    onChange={(e) => handleInputChange("username", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2 relative">
-                  <Label htmlFor="register-password">密码 *</Label>
+          {/* 注册标签页 */}
+          <TabsContent value="register" className="space-y-4 pt-4">
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="register-email">邮箱</Label>
+                <Input
+                  id="register-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="username\">用户名</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="register-password">密码</Label>
+                <div className="relative">
                   <Input
                     id="register-password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="创建密码"
-                    required
                     value={formData.password}
                     onChange={(e) => handleInputChange("password", e.target.value)}
+                    required
                   />
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-[28px] h-7 w-7"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "隐藏密码" : "显示密码"}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">{showPassword ? "隐藏密码" : "显示密码"}</span>
                   </Button>
                 </div>
-                <div className="space-y-2 relative">
-                  <Label htmlFor="register-confirm-password">确认密码 *</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">确认密码</Label>
+                <div className="relative">
                   <Input
-                    id="register-confirm-password"
+                    id="confirm-password"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="再次输入密码"
-                    required
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    required
                   />
                   <Button
                     type="button"
                     variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-[28px] h-7 w-7"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    aria-label={showConfirmPassword ? "隐藏密码" : "显示密码"}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">{showConfirmPassword ? "隐藏密码" : "显示密码"}</span>
                   </Button>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  注册
-                </Button>
-              </form>
-            </TabsContent>
-
-            <TabsContent value="wallet">
-              <div className="space-y-4 text-center pt-6 pb-2">
-                <p className="text-sm text-muted-foreground">
-                  连接您的 Solana 钱包以快速登录或注册。
-                </p>
-                <WalletButton className="w-full" />
               </div>
-            </TabsContent>
-          </Tabs>
-        )}
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    注册中...
+                  </>
+                ) : (
+                  "注册"
+                )}
+              </Button>
+            </form>
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">已有账号？</span>{" "}
+              <Button variant="link" className="p-0" onClick={() => setActiveTab("login")}>
+                立即登录
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* 钱包标签页 */}
+          <TabsContent value="wallet" className="space-y-4 pt-4">
+            <div className="text-center space-y-4">
+              <p className="text-muted-foreground">连接您的 Solana 钱包以访问所有功能</p>
+              <p className="text-xs text-muted-foreground mt-2 mb-4">
+                连接钱包后，您可以选择设置邮箱和密码，以便将来可以使用邮箱登录，但这不是必须的
+              </p>
+
+              <WalletButton className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90" />
+
+              {connected && address && (
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-xs font-mono break-all">{address}</p>
+                </div>
+              )}
+
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground mb-2">还没有 Solana 钱包？</p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    window.open("https://phantom.app/", "_blank")
+                  }}
+                >
+                  创建钱包
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* 账号设置标签页（钱包优先用户） */}
+          <TabsContent value="setup" className="space-y-4 pt-4">
+            <Alert className="bg-primary/10 border-primary/20">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>设置邮箱和密码可以让您在未来使用邮箱登录</AlertDescription>
+            </Alert>
+            <form onSubmit={handleAccountSetup} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="setup-email">邮箱</Label>
+                <Input
+                  id="setup-email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="setup-password">密码</Label>
+                <div className="relative">
+                  <Input
+                    id="setup-password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">{showPassword ? "隐藏密码" : "显示密码"}</span>
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="setup-confirm-password">确认密码</Label>
+                <div className="relative">
+                  <Input
+                    id="setup-confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="sr-only">{showConfirmPassword ? "隐藏密码" : "显示密码"}</span>
+                  </Button>
+                </div>
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    设置中...
+                  </>
+                ) : (
+                  "保存设置"
+                )}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   )

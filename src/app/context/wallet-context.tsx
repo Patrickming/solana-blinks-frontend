@@ -28,6 +28,21 @@ import type { WalletName } from '@solana/wallet-adapter-base'
 // Import wallet adapter CSS
 import "@solana/wallet-adapter-react-ui/styles.css"
 
+/**
+ * @typedef {Object} WalletContextType - 定义钱包上下文类型
+ * @property {boolean} connected - 钱包是否已连接
+ * @property {boolean} connecting - 钱包是否正在连接中
+ * @property {string | null} address - 连接钱包的地址字符串，未连接时为null
+ * @property {() => Promise<void>} connect - 连接钱包的函数
+ * @property {() => void} disconnect - 断开钱包连接的函数
+ * @property {any} publicKey - 连接钱包的公钥对象
+ * @property {any} wallet - 当前选择的钱包适配器实例
+ * @property {string | null} walletName - 当前选择的钱包名称，未选择时为null
+ * @property {() => void} openWalletModal - 打开钱包选择模态框的函数
+ * @property {string | null} error - 连接或操作钱包时发生的错误信息
+ * @property {(walletName: string) => void} selectWallet - 选择特定钱包的函数
+ */
+
 // Define wallet context type
 type WalletContextType = {
   connected: boolean
@@ -73,11 +88,11 @@ interface WalletProviderProps {
 export function WalletProvider({ children }: WalletProviderProps) {
   // Get network from environment variable or default to devnet
   const network = (process.env.NEXT_PUBLIC_SOLANA_NETWORK as WalletAdapterNetwork) || WalletAdapterNetwork.Devnet
-  console.log(`Using Solana network: ${network}`)
+  console.log(`使用 Solana 网络: ${network}`)
 
   // Get RPC URL from environment variable or use default cluster API URL
   const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl(network)
-  console.log(`Using RPC endpoint: ${endpoint}`)
+  console.log(`使用 RPC 端点: ${endpoint}`)
 
   // Configure wallet adapters - only using the definitely available ones
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [network])
@@ -91,9 +106,9 @@ export function WalletProvider({ children }: WalletProviderProps) {
       try {
         // Simple test to get the latest blockhash
         await connection.getLatestBlockhash()
-        console.log("✅ Solana RPC connection successful")
+        console.log("✅ Solana RPC 连接成功")
       } catch (error) {
-        console.error("❌ Solana RPC connection failed:", error)
+        console.error("❌ Solana RPC 连接失败:", error)
       }
     }
 
@@ -132,7 +147,7 @@ function WalletContextWrapper({ children }: { children: ReactNode }) {
     if (publicKey) {
       const addr = publicKey.toString()
       setAddress(addr)
-      console.log(`Wallet address updated: ${addr}`)
+      console.log(`钱包地址已更新: ${addr}`)
     } else {
       setAddress(null)
     }
@@ -142,25 +157,25 @@ function WalletContextWrapper({ children }: { children: ReactNode }) {
   const connect = async () => {
     try {
       setError(null)
-      console.log("Attempting to connect wallet...")
+      console.log("尝试连接钱包...")
 
       // First try to connect directly if a wallet is already selected
       if (wallet && solanaConnect) {
         try {
-          console.log(`Wallet '${wallet.adapter.name}' already selected, trying to connect directly...`)
+          console.log(`钱包 '${wallet.adapter.name}' 已选择，尝试直接连接...`)
           await solanaConnect()
-          console.log(`Direct connection successful for ${wallet.adapter.name}`)
+          console.log(`${wallet.adapter.name} 直接连接成功`)
           return
         } catch (err) {
-          console.warn("Direct connection failed or cancelled, proceeding to open modal:", err)
+          console.warn("直接连接失败或被取消，将打开模态框:", err)
         }
       }
 
       // Open wallet modal to let user select a wallet
-      console.log("Opening wallet modal for user selection.")
+      console.log("打开钱包模态框供用户选择。")
       setVisible(true)
     } catch (error) {
-      console.error("Error during connect process:", error)
+      console.error("连接过程中发生错误:", error)
 
       let errorMessage = "连接钱包失败，请重试。"
 
@@ -186,44 +201,40 @@ function WalletContextWrapper({ children }: { children: ReactNode }) {
 
   // Log when wallet modal visibility changes
   useEffect(() => {
-    console.log("Wallet modal visibility changed:", visible)
+    console.log("钱包模态框可见性变化:", visible)
   }, [visible])
 
   // Function to select a specific wallet
   const selectWallet = (walletName: string) => {
     try {
-      console.log("Selecting wallet:", walletName)
+      console.log("选择钱包:", walletName)
       if (select) {
         select(walletName as WalletName)
       } else {
-        console.warn("select function is not available from useSolanaWallet")
+        console.warn("select 函数在 useSolanaWallet 中不可用")
       }
     } catch (error) {
-      console.error("Failed to select wallet:", error)
-      toast({
-        title: "选择钱包失败",
-        description: "无法选择指定的钱包，请重试。",
-        variant: "destructive",
-      })
+      console.error("选择钱包时出错:", error)
+      const msg = error instanceof Error ? error.message : "选择钱包时发生未知错误"
+      setError(msg)
+      toast({ title: "选择钱包失败", description: msg, variant: "destructive" })
     }
   }
 
   // Disconnect wallet function
-  const disconnect = () => {
+  const disconnect = async () => {
     try {
-      console.log("Disconnecting wallet...")
-      solanaDisconnect()
+      setError(null)
+      console.log("尝试断开钱包连接...")
+      await solanaDisconnect()
       setAddress(null)
-      localStorage.removeItem("walletAddress")
-      console.log("Wallet disconnected.")
-      toast({ title: "钱包已断开" })
+      console.log("钱包已断开连接")
+      toast({ title: "钱包已断开", description: "您已成功断开钱包连接。" })
     } catch (error) {
-      console.error("Failed to disconnect wallet:", error)
-      toast({
-        title: "断开连接失败",
-        description: "无法断开钱包连接，请重试。",
-        variant: "destructive",
-      })
+      console.error("断开钱包连接时出错:", error)
+      const msg = error instanceof Error ? error.message : "断开连接时发生未知错误"
+      setError(msg)
+      toast({ title: "断开连接失败", description: msg, variant: "destructive" })
     }
   }
 
@@ -239,7 +250,7 @@ function WalletContextWrapper({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleWalletLogin = async () => {
       if (connected && address) {
-        console.log("Wallet connected state detected, checking authContext...")
+        console.log("钱包已连接，检查认证状态...")
         try {
           // 访问全局挂载的 AuthContext (或者通过 useContext 获取，如果结构允许)
           // 注意：这种全局访问方式 (window.authContext) 不是最佳实践，

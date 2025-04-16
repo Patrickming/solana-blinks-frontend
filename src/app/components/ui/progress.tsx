@@ -5,6 +5,10 @@ import * as ProgressPrimitive from "@radix-ui/react-progress"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 进度条组件
+ * 用于显示操作的完成进度。
+ */
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>

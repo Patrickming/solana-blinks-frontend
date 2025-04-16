@@ -6,6 +6,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 标签组件
+ * 通常与表单控件关联，提供说明性文字。
+ */
 const labelVariants = cva(
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 )

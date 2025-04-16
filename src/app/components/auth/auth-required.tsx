@@ -2,8 +2,10 @@
 
 import { useState, useEffect, type ReactNode } from "react"
 import { useAuth } from "@/app/context/auth-context"
-import { AuthDialog } from "@/app/components/auth-dialog"
+import { AuthDialog } from "@/app/components/auth/auth-dialog"
 import { useWallet } from "@/app/context/wallet-context"
+import type React from "react"
+import { Button } from "@/app/components/ui/button"
 
 /**
  * 需要认证的组件属性接口

@@ -2,6 +2,10 @@ import * as React from "react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 文本域组件
+ * 用于接收多行文本输入。
+ */
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
   React.ComponentProps<"textarea">

@@ -5,6 +5,10 @@ import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 可调整大小的面板组件
+ * 用于创建可拖动调整大小的布局区域。
+ */
 const ResizablePanelGroup = ({
   className,
   ...props

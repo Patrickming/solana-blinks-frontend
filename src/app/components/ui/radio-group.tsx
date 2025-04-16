@@ -6,6 +6,10 @@ import { Circle } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 单选按钮组组件
+ * 用于在一组选项中选择一个。
+ */
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>

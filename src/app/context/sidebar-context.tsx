@@ -6,6 +6,12 @@ import { createContext, useContext, useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { useMobile } from "@/app/hooks/use-mobile"
 
+/**
+ * SidebarProvider 组件和 useSidebar Hook
+ * 提供用于管理应用程序侧边栏状态的上下文。
+ * 允许组件切换和关闭侧边栏，并根据屏幕大小和路由变化自动调整状态。
+ */
+
 // 定义侧边栏上下文类型
 type SidebarContextType = {
   isOpen: boolean

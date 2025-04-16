@@ -4,6 +4,10 @@ import { ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 面包屑导航组件
+ * 用于显示当前页面的路径层次。
+ */
 const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav"> & {

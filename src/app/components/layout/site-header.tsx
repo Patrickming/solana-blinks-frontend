@@ -17,11 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useToast } from "@/components/ui/use-toast"
-import { AuthDialog } from "@/components/auth-dialog"
-import { useLanguage } from "@/context/language-context"
-import { WalletButton } from "@/components/wallet/wallet-button"
+} from "@/app/components/ui/dropdown-menu"
+import { useToast } from "@/app/components/ui/use-toast"
+import { AuthDialog } from "@/app/components/auth/auth-dialog"
+import { useLanguage } from "@/app/context/language-context"
+import { WalletButton } from "@/app/components/wallet/wallet-button"
 
 /**
  * 网站头部导航栏组件

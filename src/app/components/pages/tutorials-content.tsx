@@ -33,6 +33,10 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
+/**
+ * 教程内容组件
+ * 包含视频教程、文档、反馈和文档上传/发布功能。
+ */
 export function TutorialsContent() {
   const [feedback, setFeedback] = useState("")
   const { toast } = useToast()

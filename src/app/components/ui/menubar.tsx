@@ -6,6 +6,10 @@ import { Check, ChevronRight, Circle } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 菜单栏组件
+ * 用于创建应用程序顶部的水平菜单。
+ */
 const MenubarMenu = MenubarPrimitive.Menu
 
 const MenubarGroup = MenubarPrimitive.Group

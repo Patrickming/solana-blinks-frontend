@@ -16,6 +16,12 @@ import { toast } from "@/app/components/ui/use-toast"
 import { Copy, UploadCloud } from "lucide-react"
 
 /**
+ * NFTForm 组件
+ * 提供一个表单用于创建和配置新的 NFT。
+ * 包含 NFT 名称、符号、描述、图片上传、版税、属性等设置。
+ */
+
+/**
  * NFT 创建表单的 Zod 验证 schema。
  * 定义了创建 NFT 所需的各个字段及其验证规则。
  */

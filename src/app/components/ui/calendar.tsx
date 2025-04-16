@@ -7,6 +7,10 @@ import { DayPicker } from "react-day-picker"
 import { cn } from "@/app/lib/utils"
 import { buttonVariants } from "@/app/components/ui/button"
 
+/**
+ * 日历组件
+ * 用于显示和选择日期。
+ */
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {

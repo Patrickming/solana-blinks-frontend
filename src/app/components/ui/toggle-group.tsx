@@ -7,6 +7,10 @@ import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/app/lib/utils"
 import { toggleVariants } from "@/app/components/ui/toggle"
 
+/**
+ * 切换组组件
+ * 用于创建一组可切换状态的按钮。
+ */
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants>
 >({

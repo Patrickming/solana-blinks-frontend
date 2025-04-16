@@ -1,33 +1,105 @@
 {
+  /**
+   * TypeScript 编译器选项
+   * 配置 TypeScript 编译器的行为。
+   */
   "compilerOptions": {
+    /**
+     * 目标库文件
+     * 指定编译过程中包含的库文件。
+     */
     "lib": ["dom", "dom.iterable", "esnext"],
+    /**
+     * 允许 JavaScript 文件
+     * 是否允许在项目中导入和使用 JavaScript 文件。
+     */
     "allowJs": true,
+    /**
+     * 目标 ECMAScript 版本
+     * 指定编译输出的 ECMAScript 版本。
+     */
     "target": "ES6",
+    /**
+     * 跳过库检查
+     * 是否跳过声明文件的类型检查。
+     */
     "skipLibCheck": true,
+    /**
+     * 严格模式
+     * 启用所有严格类型检查选项。
+     */
     "strict": true,
+    /**
+     * 不生成输出文件
+     * 是否不生成 JavaScript 输出文件（通常用于类型检查）。
+     */
     "noEmit": true,
+    /**
+     * ES 模块互操作
+     * 允许通过 CommonJS/AMD/UMD 模块导入 ES6 模块。
+     */
     "esModuleInterop": true,
+    /**
+     * 模块系统
+     * 指定生成的模块代码类型。
+     */
     "module": "esnext",
+    /**
+     * 模块解析策略
+     * 指定模块解析策略。
+     */
     "moduleResolution": "bundler",
+    /**
+     * 解析 JSON 模块
+     * 允许导入 JSON 文件作为模块。
+     */
     "resolveJsonModule": true,
+    /**
+     * 隔离模块
+     * 确保每个文件都可以安全地单独编译。
+     */
     "isolatedModules": true,
+    /**
+     * JSX 处理方式
+     * 指定如何处理 JSX 文件。
+     */
     "jsx": "preserve",
+    /**
+     * 增量编译
+     * 启用增量编译以加快后续构建速度。
+     */
     "incremental": true,
+    /**
+     * 编译器插件
+     * 配置 TypeScript 编译器插件。
+     */
     "plugins": [
       {
-        "name": "next"
+        "name": "next" // Next.js 特定插件
       }
     ],
+    /**
+     * 路径映射
+     * 配置模块路径别名。
+     */
     "paths": {
-      "@/*": ["./src/*"],
-      "@/app/*": ["./src/app/*"],
-      "@/components/*": ["./src/app/components/*"],
-      "@/lib/*": ["./src/app/lib/*"],
-      "@/hooks/*": ["./src/app/hooks/*"],
-      "@/context/*": ["./src/app/context/*"],
-      "@/types/*": ["./src/app/types/*"]
+      "@/*": ["./src/*"], // 根目录别名
+      "@/app/*": ["./src/app/*"], // app 目录别名
+      "@/components/*": ["./src/app/components/*"], // components 目录别名
+      "@/lib/*": ["./src/app/lib/*"], // lib 目录别名
+      "@/hooks/*": ["./src/app/hooks/*"], // hooks 目录别名
+      "@/context/*": ["./src/app/context/*"], // context 目录别名
+      "@/types/*": ["./src/app/types/*"] // types 目录别名
     }
   },
+  /**
+   * 包含的文件
+   * 指定需要 TypeScript 编译器处理的文件或目录。
+   */
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  /**
+   * 排除的文件
+   * 指定编译器应忽略的文件或目录。
+   */
   "exclude": ["node_modules"]
 }

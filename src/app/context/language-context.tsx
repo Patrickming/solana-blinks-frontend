@@ -3,6 +3,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
 /**
+ * LanguageProvider 和 useLanguage Hook
+ * 提供多语言支持的上下文。
+ * 允许应用程序在不同语言之间切换，并提供翻译函数 `t`。
+ */
+
+/**
  * 语言上下文类型
  * 定义了语言相关的状态和方法
  */

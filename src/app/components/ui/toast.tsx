@@ -7,6 +7,10 @@ import { X } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 消息提示（Toast）组件
+ * 用于显示简短的、非阻塞的通知。
+ */
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef<

@@ -8,6 +8,12 @@ import { useToast } from "@/app/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
 /**
+ * AuthProvider 和 useAuth Hook
+ * 提供用户认证状态管理和相关操作功能。
+ * 包括用户登录、注册、登出、钱包连接/关联、用户信息获取/更新等。
+ */
+
+/**
  * 用户类型定义
  * 包含用户基本信息和社区相关字段
  */

@@ -5,6 +5,10 @@ import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 图表组件的容器和辅助组件
+ * 基于 Recharts 库，提供图表配置、样式和工具提示等。
+ */
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 

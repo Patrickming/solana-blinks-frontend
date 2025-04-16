@@ -6,6 +6,10 @@ import { X } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 对话框组件
+ * 用于显示模态内容，覆盖在主内容之上。
+ */
 const Dialog = DialogPrimitive.Root
 
 const DialogTrigger = DialogPrimitive.Trigger

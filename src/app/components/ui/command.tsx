@@ -8,6 +8,10 @@ import { Search } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 import { Dialog, DialogContent } from "@/app/components/ui/dialog"
 
+/**
+ * 命令面板组件
+ * 用于快速搜索和执行命令。
+ */
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive>

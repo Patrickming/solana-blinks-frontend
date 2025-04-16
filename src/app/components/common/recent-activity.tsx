@@ -90,8 +90,8 @@ export function RecentActivity() {
     // 使用玻璃态效果的卡片组件
     <Card className="glass-morphism">
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
-        <CardDescription>Your latest actions and updates</CardDescription>
+        <CardTitle>最近活动</CardTitle>
+        <CardDescription>您最近的操作和更新</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

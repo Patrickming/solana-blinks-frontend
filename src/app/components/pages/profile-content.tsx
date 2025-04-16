@@ -25,13 +25,17 @@ import {
   Eye,
   EyeOff,
   Trash2,
-} from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AuthDialog } from "@/components/auth-dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "lucide-react" 
+import { Alert, AlertDescription } from "@/app/components/ui/alert"
+import { AuthDialog } from "@/app/components/auth/auth-dialog"
+import { Textarea } from "@/app/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
 import Link from "next/link"
 
+/**
+ * 个人资料内容组件
+ * 包含个人信息、安全设置、社区资料等。
+ */
 export function ProfileContent() {
   const { user, needsAccountSetup, updateUser, fetchUserProfile } = useAuth()
   const { toast } = useToast()

@@ -5,6 +5,10 @@ import * as PopoverPrimitive from "@radix-ui/react-popover"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 浮层组件
+ * 用于显示在特定元素旁边弹出的内容。
+ */
 const Popover = PopoverPrimitive.Root
 
 const PopoverTrigger = PopoverPrimitive.Trigger

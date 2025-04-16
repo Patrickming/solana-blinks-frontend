@@ -1,5 +1,9 @@
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 骨架屏组件
+ * 用于在内容加载时显示占位符。
+ */
 function Skeleton({
   className,
   ...props

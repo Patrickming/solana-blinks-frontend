@@ -6,6 +6,10 @@ import { Check } from "lucide-react"
 
 import { cn } from "@/app/lib/utils"
 
+/**
+ * 复选框组件
+ * 用于选择一个或多个选项。
+ */
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
