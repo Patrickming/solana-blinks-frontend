@@ -18,6 +18,61 @@ Solana Blinks 是一个基于Solana区块链的应用程序，允许用户创建
 - **国际化**：自定义语言上下文
 - **动画**：Framer Motion
 
+## 主要模块与首页构成
+
+本应用主要包含以下核心功能模块及首页：
+
+### 1. Blink 创建模块
+
+此模块负责让用户创建、配置和预览 Solana Blinks（可执行操作链接）、SPL 代币和 NFT。
+
+*   **页面路由**: `src/app/blink/page.tsx`
+*   **核心组件**:
+    *   `src/app/components/blink/blink-creator-wrapper.tsx`: Blink 创建页面的顶层包装器。
+    *   `src/app/components/blink/blink-creator.tsx`: 包含创建 Blink、代币、NFT 的 Tab 切换和主要逻辑。
+    *   `src/app/components/forms/blink-form.tsx`: 创建 Blink 的具体表单。
+    *   `src/app/components/forms/token-form.tsx`: "快速代币" 创建表单。
+    *   `src/app/components/forms/nft-form.tsx`: "快速NFT" 创建表单。
+    *   `src/app/components/blink/blink-preview.tsx`: 用于实时预览生成的 Blink。
+
+### 2. 教程模块
+
+提供关于 Solana Blinks 的使用指南、视频教程和常见问题解答。
+
+*   **页面路由**: `src/app/tutorials/page.tsx`
+*   **核心组件**:
+    *   `src/app/components/pages/tutorials-content.tsx`: 教程页面的主内容区域，包含 Tab 切换（指南、视频、FAQ）、内容展示和反馈功能。
+
+### 3. 案例展示模块
+
+展示 Solana Blinks 的实际应用案例和成功故事。
+
+*   **页面路由**:
+    *   `src/app/showcase/page.tsx` (列表页)
+    *   `src/app/showcase/[id]/page.tsx` (详情页 - 动态路由)
+*   **核心组件**:
+    *   `src/app/components/pages/showcase-content.tsx`: 案例展示页面的主内容，包含搜索、筛选、案例卡片列表和特色案例详情。
+
+### 4. 社区论坛模块
+
+提供用户交流、提问、分享经验的平台。
+
+*   **页面路由**:
+    *   `src/app/forum/page.tsx` (主论坛页)
+    *   `src/app/forum/[id]/page.tsx` (话题详情页 - 动态路由)
+*   **核心组件**:
+    *   `src/app/components/pages/forum-content.tsx`: 论坛主页面的内容，包含话题列表、分类、搜索和创建新话题的功能。
+    *   `src/app/components/pages/topic-detail-client.tsx`: 话题详情页的客户端组件，负责获取和展示话题内容及评论 (由 `src/app/forum/[id]/page.tsx` 加载)。
+
+### 5. 首页
+
+应用的入口页面，通常包含项目介绍、核心功能入口等。
+
+*   **页面路由**: `src/app/page.tsx`
+*   **核心组件**:
+    *   `src/app/components/home/home-content-wrapper.tsx`: 首页内容的顶层包装器。
+    *   `src/app/components/home/home-content.tsx`: 首页的具体内容展示。
+
 ## 文件结构与功能
 
 ### 核心配置文件
