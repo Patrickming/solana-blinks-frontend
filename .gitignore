@@ -25,3 +25,39 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# === Rules merged from src/backend/.gitignore ===
+
+# Lockfiles (choose based on your package manager)
+# package-lock.json
+# yarn.lock
+
+# Other build outputs
+dist/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc Cache/Temp
+.cache/
+.temp/
+.tmp/
+temp/
+tmp/
+
+# Debug folder
+.debug/
+# === End of merged rules ===

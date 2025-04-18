@@ -133,7 +133,7 @@ export function ProfileContent() {
 
       // 设置头像 URL
       if (user.avatar) {
-        setAvatarUrl(`https://dkynujeaxjjr.sealoshzh.site${user.avatar}`)
+        setAvatarUrl(user.avatar)
       } else {
         setAvatarUrl("/placeholder.svg?height=96&width=96")
       }
@@ -164,6 +164,13 @@ export function ProfileContent() {
       setShowSetupDialog(true)
     }
   }, [needsAccountSetup])
+
+  useEffect(() => {
+    if (user?.avatar) {
+      // Assuming user.avatar is a relative path like /uploads/avatars/...
+      setAvatarUrl(user.avatar);
+    }
+  }, [user?.avatar]);
 
   const handleInputChange = (field: string, value: string) => {
     setIsFormDirty(true)
@@ -355,7 +362,7 @@ export function ProfileContent() {
       }
 
       // 调用更改密码API - 修改为正确的API路径
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/password", {
+      const response = await fetch("/api/users/password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -442,7 +449,7 @@ export function ProfileContent() {
       formData.append("avatar", file)
 
       // Upload avatar to server
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/avatar", {
+      const response = await fetch("/api/users/avatar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -463,7 +470,7 @@ export function ProfileContent() {
         localStorage.setItem("user", JSON.stringify(updatedUser))
 
         // 不要立即刷新用户资料，只更新本地状态
-        setAvatarUrl(`https://dkynujeaxjjr.sealoshzh.site${data.avatar}`)
+        setAvatarUrl(data.avatar)
       }
 
       toast({
@@ -480,7 +487,7 @@ export function ProfileContent() {
 
       // Revert to previous avatar if upload fails
       if (user?.avatar) {
-        setAvatarUrl(`https://dkynujeaxjjr.sealoshzh.site${user.avatar}`)
+        setAvatarUrl(user.avatar)
       } else {
         setAvatarUrl("/placeholder.svg?height=96&width=96")
       }
@@ -502,7 +509,7 @@ export function ProfileContent() {
       }
 
       // Delete avatar from server
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile/avatar", {
+      const response = await fetch("/api/users/profile/avatar", {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

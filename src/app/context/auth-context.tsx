@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("开始获取用户资料，使用 token:", token.substring(0, 10) + "...")
       
       // 调用后端获取用户资料 API
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile", {
+      const response = await fetch("/api/users/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -226,7 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("执行 connectWallet，地址:", walletAddress)
     try {
       // 调用后端 API 进行钱包登录或注册
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/wallet", {
+      const response = await fetch("/api/users/wallet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -327,7 +327,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // 调用后端 API 关联钱包
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile/wallet", {
+      const response = await fetch("/api/users/profile/wallet", {
         method: "POST", // 使用 POST 请求将钱包地址发送到用户 profile 下的 wallet 端点
         headers: {
           "Content-Type": "application/json",
@@ -401,7 +401,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 如果本地存在用户信息和 token，则验证 token 是否有效
         try {
           // 调用后端 API 验证 token
-          const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile", {
+          const response = await fetch("/api/users/profile", {
             headers: {
               Authorization: `Bearer ${token}`, // 在请求头中携带 token
             },
@@ -529,7 +529,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("执行 login，邮箱:", email)
     try {
       // 调用后端登录 API
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/login", {
+      const response = await fetch("/api/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -638,7 +638,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log("执行 register，邮箱:", email, "用户名:", username)
     try {
       // 调用后端注册 API
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/register", {
+      const response = await fetch("/api/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -713,7 +713,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // 调用后端 API 更新用户信息 (假设有一个专门的端点或 register 端点可以处理)
       // 这里假设调用 /api/users/profile PUT 来更新邮箱和标记 hasSetupAccount
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile", {
+      const response = await fetch("/api/users/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -787,7 +787,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       delete profileData.hasSetupAccount
 
       // 调用后端更新资料 API
-      const response = await fetch("https://dkynujeaxjjr.sealoshzh.site/api/users/profile", {
+      const response = await fetch("/api/users/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
