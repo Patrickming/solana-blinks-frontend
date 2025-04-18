@@ -345,7 +345,7 @@ export function ForumContent() {
              const originalTagIds = originalTopic?.tags?.map(t => t.id) || [];
              // Handle cleanup if original was empty
              const newState = { ...prev, [topicId]: originalTagIds };
-              if (newState[topicId]?.length === 0) {
+      if (newState[topicId]?.length === 0) {
                   delete newState[topicId];
               }
              return newState;
@@ -373,9 +373,9 @@ export function ForumContent() {
         return;
     }
     if (!newTopicTitle.trim() || !newTopicContent.trim() || !newTopicCategoryId) {
-      toast({ 
-          title: t("forum.validation.title"),
-          description: t("forum.validation.description"), 
+      toast({
+        title: t("forum.validation.title"),
+        description: t("forum.validation.description"),
           variant: "destructive" 
       });
       return;
@@ -466,7 +466,7 @@ export function ForumContent() {
         // This logic can be complex, maybe just let user navigate for now.
         setIsConfirmOpen(false); // Close the dialog
     } catch (err: any) {
-         toast({ 
+    toast({
              title: "删除话题失败", 
              description: err.message, 
              variant: "destructive" 
@@ -667,16 +667,16 @@ export function ForumContent() {
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-grow min-w-0">
                         <div className="mb-2">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <CardTitle 
-                              className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer line-clamp-1"
-                              onClick={(e: MouseEvent) => { e.stopPropagation(); handleTopicClick(topic.id); }}
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <CardTitle 
+                            className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer line-clamp-1"
+                            onClick={(e: MouseEvent) => { e.stopPropagation(); handleTopicClick(topic.id); }}
                               title={topic.title}
-                            > 
-                              {topic.title}
-                            </CardTitle>
+                          > 
+                            {topic.title}
+                          </CardTitle>
                             {actualTopicTags.map(tag => (
-                              <Badge
+                              <Badge 
                                 key={tag.id}
                                 className={`border text-xs ${tag.color_classes || 'bg-secondary text-secondary-foreground border-border'}`}
                               >
@@ -684,46 +684,45 @@ export function ForumContent() {
                               </Badge>
                             ))}
                             {user && (
-                            <Popover>
-                              <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Popover>
+                            <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                                 <Button variant="ghost" size="icon" className={`h-6 w-6 ml-1 text-muted-foreground hover:text-foreground ${isUpdatingThisTopicTags ? 'animate-pulse' : ''}`} disabled={isUpdatingThisTopicTags}>
                                   {isUpdatingThisTopicTags ? <Loader2 className="h-4 w-4 animate-spin" /> : <Tag className="h-4 w-4" />} 
-                                  <span className="sr-only">{t("forum.actions.manageTags")}</span>
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-4" onClick={(e) => e.stopPropagation()}>
-                                <div className="grid gap-4">
-                                  <h4 className="font-medium leading-none">{t("forum.actions.selectTags")}</h4>
-                                  <div className="grid gap-2">
+                                <span className="sr-only">{t("forum.actions.manageTags")}</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-4" onClick={(e) => e.stopPropagation()}>
+                              <div className="grid gap-4">
+                                <h4 className="font-medium leading-none">{t("forum.actions.selectTags")}</h4>
+                                <div className="grid gap-2">
                                      {tags.length === 0 && <p className="text-xs text-muted-foreground">正在加载标签...</p>}
                                      {tags.map((tag) => (
-                                      <div key={tag.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                          id={`tag-${topic.id}-${tag.id}`}
+                                    <div key={tag.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`tag-${topic.id}-${tag.id}`}
                                           checked={currentClientSelectedTags.includes(tag.id)}
-                                          onCheckedChange={(checked) => handleTagSelectionChange(topic.id, tag.id, checked)}
+                                        onCheckedChange={(checked) => handleTagSelectionChange(topic.id, tag.id, checked)}
                                            disabled={isUpdatingThisTopicTags}
-                                        />
-                                        <Label
-                                          htmlFor={`tag-${topic.id}-${tag.id}`}
+                                      />
+                                      <Label
+                                        htmlFor={`tag-${topic.id}-${tag.id}`}
                                            className={`text-sm font-medium leading-none cursor-pointer ${tag.color_classes || ''}`}
-                                        >
+                                      >
                                            {tag.name}
-                                        </Label>
-                                      </div>
-                                    ))}
-                                  </div>
+                                      </Label>
+                                    </div>
+                                  ))}
                                 </div>
-                              </PopoverContent>
-                            </Popover>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                             )}
                           </div>
                         </div>
                         {/* Content Snippet - Using ReactMarkdown */}
                         {topic.content_snippet && (
-                            <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground line-clamp-2 text-sm">
+                            <div className="max-w-none text-muted-foreground line-clamp-2 text-sm">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {/* Rely on line-clamp for ellipsis */} 
                                     {topic.content_snippet}
                                 </ReactMarkdown>
                             </div>
@@ -742,14 +741,14 @@ export function ForumContent() {
                          <Avatar className="h-7 w-7">
                              <AvatarImage src={topic.author.avatar || undefined} alt={topic.author.username} />
                              <AvatarFallback className="text-sm">{topic.author.username.charAt(0).toUpperCase()}</AvatarFallback>
-                         </Avatar>
-                         <div>
+                      </Avatar>
+                      <div>
                             <span className="text-sm font-medium text-foreground/90 mr-1.5">{topic.author.username}</span>
                             <span className="text-xs text-muted-foreground/80">
                                  · {formatDistanceToNow(new Date(topic.created_at), { addSuffix: true, locale: zhCN })}
                             </span>
-                         </div>
-                     </div>
+                      </div>
+                    </div>
 
                      {/* Right side: Stats and Action Buttons */}
                      <div className="flex items-center space-x-3"> {/* Increased spacing slightly */} 
@@ -763,7 +762,7 @@ export function ForumContent() {
                                  <ThumbsUp className="h-4 w-4 mr-1" />
                                  <span>{topic.like_count ?? 0}</span>
                              </span>
-                         </div>
+                    </div>
 
                          {/* Action Buttons Separator? Optional */} 
                          {/* <Separator orientation="vertical" className="h-4 mx-1" /> */}
@@ -784,7 +783,7 @@ export function ForumContent() {
                                       aria-label="删除话题"
                                   >
                                       <Trash2 className="h-4 w-4" />
-                                  </Button>
+                    </Button>
                              )}
                           </div>
                      </div>

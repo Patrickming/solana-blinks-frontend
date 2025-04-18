@@ -35,9 +35,11 @@ export async function GET(request) {
   const categoryId = searchParams.get('categoryId');
   const tagId = searchParams.get('tagId');
   const sortBy = searchParams.get('sortBy') || 'activity';
+  // Get search term
+  const searchTerm = searchParams.get('search');
   const offset = (page - 1) * limit;
 
-  logger.info('开始获取论坛主题列表', { page, limit, categoryId, tagId, sortBy });
+  logger.info('开始获取论坛主题列表', { page, limit, categoryId, tagId, sortBy, searchTerm });
 
   let sortClause = 'ORDER BY t.last_activity_at DESC';
   switch (sortBy) {
@@ -54,20 +56,35 @@ export async function GET(request) {
   }
 
   const queryParams = [];
-  let whereClauses = ['t.status = ?']; // Base filter for visible topics
-  queryParams.push('open'); // Assuming we only show 'open' topics by default
+  const countQueryParams = []; // Separate params for count query
+  let whereClauses = ['t.status = ?'];
+  queryParams.push('open');
+  countQueryParams.push('open');
 
   if (categoryId) {
     whereClauses.push('t.category_id = ?');
-    queryParams.push(parseInt(categoryId, 10));
+    const categoryIdInt = parseInt(categoryId, 10);
+    queryParams.push(categoryIdInt);
+    countQueryParams.push(categoryIdInt);
   }
 
-  // Filtering by tag requires a subquery or join in the WHERE clause
+  // Handle search term
+  if (searchTerm && searchTerm.trim()) {
+    whereClauses.push('t.title LIKE ?');
+    const searchPattern = `%${searchTerm.trim()}%`;
+    queryParams.push(searchPattern);
+    countQueryParams.push(searchPattern);
+  }
+
+  // Filtering by tag requires a join. We need to add this join conditionally ONLY IF tagId is present.
+  // The join should also be added to the count query.
   let tagJoin = '';
   if (tagId) {
     tagJoin = ' JOIN forum_topic_tags ftt_filter ON t.id = ftt_filter.topic_id ';
     whereClauses.push('ftt_filter.tag_id = ?');
-    queryParams.push(parseInt(tagId, 10));
+    const tagIdInt = parseInt(tagId, 10);
+    queryParams.push(tagIdInt);
+    countQueryParams.push(tagIdInt);
   }
 
   const whereString = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
@@ -77,9 +94,7 @@ export async function GET(request) {
     // Query for topics with joins and GROUP_CONCAT for tags
     const topicsQuery = `
         SELECT
-            t.id, t.title, t.status, 
-            -- t.reply_count, -- Removed direct selection
-            -- Calculate reply_count: Count visible posts excluding the initial post
+            t.id, t.title, t.status,
             (
                 SELECT COUNT(*)
                 FROM forum_posts fp
@@ -106,40 +121,80 @@ export async function GET(request) {
         JOIN forum_categories c ON t.category_id = c.id
         LEFT JOIN forum_topic_tags ftt ON t.id = ftt.topic_id
         LEFT JOIN forum_tags ft ON ftt.tag_id = ft.id
-        ${tagJoin} -- Join for tag filtering if needed
-        ${whereString}
-        GROUP BY t.id -- Assuming MySQL lenient mode or functional dependency allows this
+        ${tagJoin} -- Conditionally join for tag filtering
+        ${whereString} -- Apply WHERE clauses (including search and category)
+        GROUP BY t.id
         ${sortClause}
         LIMIT ?
         OFFSET ?
     `;
+    // Add limit and offset ONLY to the main query params
     queryParams.push(limit, offset);
+
+    // logger.debug("Executing Topics Query:", topicsQuery);
+    // logger.debug("Topics Query Params:", queryParams);
+    // Use info instead of debug if debug is not available
+    logger.info("Executing Topics Query with Params:", { queryParams }); 
 
     const [rows] = await connection.query(topicsQuery, queryParams);
 
-    // Query for total count for pagination
-    const countQueryParams = queryParams.slice(0, queryParams.length - 2); // Remove limit and offset
+    // Query for total count for pagination - Use countQueryParams here
     const countQuery = `
-        SELECT COUNT(DISTINCT t.id)
+        SELECT COUNT(DISTINCT t.id) as totalCount
         FROM forum_topics t
-        ${tagJoin} -- Join for tag filtering if needed
-        ${whereString}
+        ${tagJoin} -- Conditionally join for tag filtering
+        ${whereString} -- Apply the same WHERE clauses
     `;
-    const [[{ 'COUNT(DISTINCT t.id)': totalCount }]] = await connection.query(countQuery, countQueryParams);
+
+    // logger.debug("Executing Count Query:", countQuery);
+    // logger.debug("Count Query Params:", countQueryParams);
+    // Use info instead of debug if debug is not available
+    logger.info("Executing Count Query with Params:", { countQueryParams });
+
+    const [[{ totalCount }]] = await connection.query(countQuery, countQueryParams);
 
     // Batch query for initial post content snippets for the fetched topics
     const topicIds = rows.map(row => row.id);
     let initialPostContents = {};
     if (topicIds.length > 0) {
-        const contentQuery = `
-            SELECT topic_id, LEFT(content, 150) as content_snippet 
-            FROM forum_posts 
-            WHERE topic_id IN (?) AND parent_post_id IS NULL
-        `; // Fetch first 150 chars
-        const [contentRows] = await connection.query(contentQuery, [topicIds]);
-        contentRows.forEach(row => {
-            initialPostContents[row.topic_id] = row.content_snippet;
-        });
+        // Find the ID of the first post for each topic_id (assuming MIN(id) is the first post)
+        const firstPostIdQuery = `
+            SELECT topic_id, MIN(id) as first_post_id
+            FROM forum_posts
+            WHERE topic_id IN (?)
+            GROUP BY topic_id
+        `;
+        const [firstPostIdRows] = await connection.query(firstPostIdQuery, [topicIds]);
+        const firstPostIdsMap = firstPostIdRows.reduce((acc, row) => {
+            acc[row.topic_id] = row.first_post_id;
+            return acc;
+        }, {});
+
+        const relevantPostIds = Object.values(firstPostIdsMap).filter(id => id != null); // Get unique initial post IDs
+
+        if (relevantPostIds.length > 0) {
+            // Now fetch the content for these specific first post IDs
+            const contentQuery = `
+                SELECT id as post_id, LEFT(content, 150) as content_snippet
+                FROM forum_posts
+                WHERE id IN (?)
+            `;
+            const [contentRows] = await connection.query(contentQuery, [relevantPostIds]);
+
+            // Map content snippets back to topic IDs using the firstPostIdsMap
+            const contentMap = contentRows.reduce((acc, row) => {
+                acc[row.post_id] = row.content_snippet;
+                return acc;
+            }, {});
+
+            // Populate initialPostContents using the topicId -> firstPostId -> snippet mapping
+            for (const topicId in firstPostIdsMap) {
+                const postId = firstPostIdsMap[topicId];
+                if (postId && contentMap[postId]) {
+                    initialPostContents[topicId] = contentMap[postId];
+                }
+            }
+        }
     }
 
     const topics = rows.map(row => ({
@@ -164,7 +219,7 @@ export async function GET(request) {
       tags: parseConcatenatedTags(row)
     }));
 
-    logger.info(`成功获取 ${topics.length} 个主题 (总计: ${totalCount})`);
+    logger.info(`成功获取 ${topics.length} 个主题 (总计: ${totalCount}, 搜索: "${searchTerm || ''}")`);
     return NextResponse.json({ 
         topics,
         totalCount,
