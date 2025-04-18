@@ -76,86 +76,122 @@ DELETE FROM `forum_topic_tags` WHERE topic_id = 4; -- 清除旧标签关联 (此
 
 -- --- 4. 模拟具体的回复记录 ---
 -- (先删除旧的回复和点赞，避免重复插入导致数量错误)
-DELETE FROM `forum_post_likes` WHERE post_id > 4; -- 删除模拟的点赞
+DELETE FROM `forum_post_likes`; -- 删除所有的模拟点赞
 DELETE FROM `forum_posts` WHERE id > 4; -- 删除模拟的回复
 
--- 模拟主题 1 的 12 条回复
-INSERT INTO `forum_posts` (`topic_id`, `user_id`, `content`, `created_at`) VALUES
-  (1, 2, '回复主题1: 我通常对稳定币对使用 0.5%', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 1 HOUR),
-  (1, 3, '回复主题1: 对于波动大的山寨币，我可能会用到 1% 甚至 2%', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 2 HOUR),
-  (1, 4, '回复主题1: 同意楼上，看具体交易对', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 3 HOUR),
-  (1, 1, '回复主题1: 感谢大家的建议！', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 4 HOUR),
-  (1, 2, '回复主题1: 也要看当时的 Gas 费情况', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 5 HOUR),
-  (1, 3, '回复主题1: 有没有人试过 Jupiter 的 API？', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 6 HOUR),
-  (1, 4, '回复主题1: 正在研究中', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 7 HOUR),
-  (1, 1, '回复主题1: Blink SDK v2 会更容易设置吗？', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR),
-  (1, 2, '回复主题1: 理论上是的', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR),
-  (1, 3, '回复主题1: 期待新版文档', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR),
-  (1, 4, '回复主题1: +1', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 11 HOUR),
-  (1, 1, '回复主题1: 看来社区很活跃', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 12 HOUR);
--- 更新主题1的最后活动时间
+-- 更新初始帖子的 like_count 为 0，将由点赞记录和触发器更新
+UPDATE `forum_posts` SET like_count = 0 WHERE id IN (1, 2, 3, 4);
+-- 更新主题的 like_count 和 reply_count 为 0，将由帖子/点赞记录和触发器更新
+UPDATE `forum_topics` SET like_count = 0, reply_count = 0 WHERE id IN (1, 2, 3, 4);
+
+-- 模拟主题 1 的 12 条回复 (Post ID 5-16)
+INSERT INTO `forum_posts` (`topic_id`, `user_id`, `parent_post_id`, `content`, `created_at`) VALUES
+  (1, 2, 1, '回复主题1: 我通常对稳定币对使用 0.5%', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 1 HOUR), -- id=5
+  (1, 3, 1, '回复主题1: 对于波动大的山寨币，我可能会用到 1% 甚至 2%', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 2 HOUR), -- id=6
+  (1, 4, 5, '回复主题1: 同意楼上，看具体交易对', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 3 HOUR), -- id=7 (reply to 5)
+  (1, 1, 1, '回复主题1: 感谢大家的建议！', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 4 HOUR), -- id=8
+  (1, 2, 1, '回复主题1: 也要看当时的 Gas 费情况', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 5 HOUR), -- id=9
+  (1, 3, 1, '回复主题1: 有没有人试过 Jupiter 的 API？', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 6 HOUR), -- id=10
+  (1, 4, 10, '回复主题1: 正在研究中', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 7 HOUR), -- id=11 (reply to 10)
+  (1, 1, 1, '回复主题1: Blink SDK v2 会更容易设置吗？', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 8 HOUR), -- id=12
+  (1, 2, 12, '回复主题1: 理论上是的', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 9 HOUR), -- id=13 (reply to 12)
+  (1, 3, 1, '回复主题1: 期待新版文档', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 10 HOUR), -- id=14
+  (1, 4, 1, '回复主题1: +1', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 11 HOUR), -- id=15
+  (1, 1, 1, '回复主题1: 看来社区很活跃', DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 12 HOUR); -- id=16
+-- 注意：上面插入帖子后，如果触发器启用，主题1的 reply_count 和 last_activity 会自动更新。
+-- 手动更新最后活动时间（如果不用触发器或确保覆盖）
 UPDATE `forum_topics` SET `last_activity_at` = DATE_SUB(NOW(), INTERVAL 1 DAY) + INTERVAL 12 HOUR, `last_activity_user_id` = 1 WHERE `id` = 1;
 
--- 模拟主题 2 的 8 条回复
-INSERT INTO `forum_posts` (`topic_id`, `user_id`, `content`, `created_at`) VALUES
-  (2, 1, '回复主题2: 太棒了！新功能有哪些亮点？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 1 HOUR),
-  (2, 3, '回复主题2: 性能提升具体体现在哪里？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 2 HOUR),
-  (2, 4, '回复主题2: 文档更新了吗？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 3 HOUR),
-  (2, 2, '回复主题2: 稍后会发布详细的更新日志和文档链接', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 4 HOUR),
-  (2, 1, '回复主题2: 期待！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 5 HOUR),
-  (2, 3, '回复主题2: 辛苦了！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 6 HOUR),
-  (2, 4, '回复主题2: 感谢团队！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 7 HOUR),
-  (2, 1, '回复主题2: Solana 生态越来越好了', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 8 HOUR);
+-- 模拟主题 2 的 8 条回复 (Post ID 17-24)
+INSERT INTO `forum_posts` (`topic_id`, `user_id`, `parent_post_id`, `content`, `created_at`) VALUES
+  (2, 1, 2, '回复主题2: 太棒了！新功能有哪些亮点？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 1 HOUR), -- id=17
+  (2, 3, 2, '回复主题2: 性能提升具体体现在哪里？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 2 HOUR), -- id=18
+  (2, 4, 2, '回复主题2: 文档更新了吗？', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 3 HOUR), -- id=19
+  (2, 2, 17, '回复主题2: 稍后会发布详细的更新日志和文档链接', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 4 HOUR), -- id=20 (reply to 17)
+  (2, 1, 2, '回复主题2: 期待！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 5 HOUR), -- id=21
+  (2, 3, 2, '回复主题2: 辛苦了！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 6 HOUR), -- id=22
+  (2, 4, 2, '回复主题2: 感谢团队！', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 7 HOUR), -- id=23
+  (2, 1, 2, '回复主题2: Solana 生态越来越好了', DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 8 HOUR); -- id=24
 -- 更新主题2的最后活动时间
 UPDATE `forum_topics` SET `last_activity_at` = DATE_SUB(NOW(), INTERVAL 0 DAY) + INTERVAL 8 HOUR, `last_activity_user_id` = 1 WHERE `id` = 2;
 
--- 模拟主题 3 的 5 条回复
-INSERT INTO `forum_posts` (`topic_id`, `user_id`, `content`, `created_at`) VALUES
-  (3, 1, '回复主题3: 检查下你的依赖版本是否兼容？', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 1 HOUR),
-  (3, 2, '回复主题3: 看看 Github 上的 issue，可能有人遇到过', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 2 HOUR),
-  (3, 4, '回复主题3: 贴一下具体的错误信息？', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 3 HOUR),
-  (3, 3, '回复主题3: 好的，我检查下版本再贴错误日志', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 4 HOUR),
-  (3, 1, '回复主题3: 等你消息', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 5 HOUR);
+-- 模拟主题 3 的 5 条回复 (Post ID 25-29)
+INSERT INTO `forum_posts` (`topic_id`, `user_id`, `parent_post_id`, `content`, `created_at`) VALUES
+  (3, 1, 3, '回复主题3: 检查下你的依赖版本是否兼容？', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 1 HOUR), -- id=25
+  (3, 2, 3, '回复主题3: 看看 Github 上的 issue，可能有人遇到过', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 2 HOUR), -- id=26
+  (3, 4, 3, '回复主题3: 贴一下具体的错误信息？', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 3 HOUR), -- id=27
+  (3, 3, 27, '回复主题3: 好的，我检查下版本再贴错误日志', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 4 HOUR), -- id=28 (reply to 27)
+  (3, 1, 3, '回复主题3: 等你消息', DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 5 HOUR); -- id=29
 -- 更新主题3的最后活动时间
 UPDATE `forum_topics` SET `last_activity_at` = DATE_SUB(NOW(), INTERVAL 2 DAY) + INTERVAL 5 HOUR, `last_activity_user_id` = 1 WHERE `id` = 3;
 
--- 模拟主题 4 的 3 条回复
-INSERT INTO `forum_posts` (`topic_id`, `user_id`, `content`, `created_at`) VALUES
-  (4, 1, '回复主题4: 看起来很酷！', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 1 HOUR),
-  (4, 2, '回复主题4: 链接有效，交易很顺畅！', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 2 HOUR),
-  (4, 3, '回复主题4: 艺术风格不错', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 3 HOUR);
+-- 模拟主题 4 的 3 条回复 (Post ID 30-32)
+INSERT INTO `forum_posts` (`topic_id`, `user_id`, `parent_post_id`, `content`, `created_at`) VALUES
+  (4, 1, 4, '回复主题4: 看起来很酷！', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 1 HOUR), -- id=30
+  (4, 2, 4, '回复主题4: 链接有效，交易很顺畅！', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 2 HOUR), -- id=31
+  (4, 3, 30, '回复主题4: 艺术风格不错', DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 3 HOUR); -- id=32 (reply to 30)
 -- 更新主题4的最后活动时间
 UPDATE `forum_topics` SET `last_activity_at` = DATE_SUB(NOW(), INTERVAL 3 DAY) + INTERVAL 3 HOUR, `last_activity_user_id` = 3 WHERE `id` = 4;
 
 
--- --- 5. 模拟具体的点赞记录 ---
--- (先删除旧的点赞记录，避免重复插入)
-DELETE FROM `forum_post_likes` WHERE post_id IN (1, 2, 3, 4);
+-- --- 5. 模拟具体的点赞记录 (唯一性由主键保证) ---
+-- (假设 Post IDs 1-4 是初始帖子, 5-16 是主题1的回复, 17-24 主题2回复, etc.)
 
--- 模拟帖子 1 (主题1初始帖) 的 24 个点赞
+-- 模拟帖子 1 (主题1初始帖) 的点赞 (例如: 4个独立用户点赞)
 INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
-  (1, 1), (2, 1), (3, 1), (4, 1),
-  (1, 1), (2, 1), (3, 1), (4, 1),
-  (1, 1), (2, 1), (3, 1), (4, 1),
-  (1, 1), (2, 1), (3, 1), (4, 1),
-  (1, 1), (2, 1), (3, 1), (4, 1),
-  (1, 1), (2, 1), (3, 1), (4, 1);
+  (1, 1), (2, 1), (3, 1), (4, 1)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id); -- 避免重复插入错误
 
--- 模拟帖子 2 (主题2初始帖) 的 42 个点赞
+-- 模拟帖子 2 (主题2初始帖) 的点赞 (例如: 3个用户)
 INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
-  (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), -- 10
-  (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), -- 20
-  (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), -- 30
-  (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), (1, 2), (2, 2), (3, 2), (4, 2), -- 40
-  (1, 2), (2, 2); -- 42
+  (1, 2), (3, 2), (4, 2)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
 
--- 模拟帖子 3 (主题3初始帖) 的 7 个点赞
+-- 模拟帖子 3 (主题3初始帖) 的点赞 (例如: 2个用户)
 INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
-  (1, 3), (2, 3), (4, 3), (1, 3), (3, 3), (4, 3), (2, 3);
+  (1, 3), (4, 3)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
 
--- 模拟帖子 4 (主题4初始帖) 的 15 个点赞
+-- 模拟帖子 4 (主题4初始帖) 的点赞 (例如: 5个用户)
 INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
-  (1, 4), (2, 4), (3, 4), (1, 4), (2, 4), (3, 4), (1, 4), (2, 4), (3, 4), (1, 4),
-  (2, 4), (3, 4), (1, 4), (2, 4), (3, 4);
+  (1, 4), (2, 4), (3, 4), (4, 4), (1, 4) -- 注意：最后一个(1,4)会因为主键冲突被忽略或更新 (根据 ON DUPLICATE KEY)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
+-- 实际上只有 4 个唯一用户点赞
+
+-- 模拟回复的点赞
+-- 帖子 5 (主题1回复) 被 2 人点赞
+INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
+  (1, 5), (4, 5)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
+-- 帖子 6 (主题1回复) 被 3 人点赞
+INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
+  (1, 6), (2, 6), (4, 6)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
+-- 帖子 17 (主题2回复) 被 1 人点赞
+INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
+  (2, 17)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
+-- 帖子 25 (主题3回复) 被 1 人点赞
+INSERT INTO `forum_post_likes` (`user_id`, `post_id`) VALUES
+  (3, 25)
+ON DUPLICATE KEY UPDATE user_id=VALUES(user_id);
+
+-- --- 6. 手动更新统计数据 (如果未使用或信任触发器) ---
+-- 注意：如果触发器已正确配置并运行，以下 UPDATE 语句可能不是必需的，
+-- 但为了确保数据一致性或在无触发器环境下运行，可以执行它们。
+
+-- 更新所有帖子的 like_count
+UPDATE forum_posts fp
+SET like_count = (SELECT COUNT(*) FROM forum_post_likes WHERE post_id = fp.id);
+
+-- 更新所有主题的 reply_count (parent_post_id IS NOT NULL)
+UPDATE forum_topics ft
+SET reply_count = (SELECT COUNT(*) FROM forum_posts WHERE topic_id = ft.id AND parent_post_id IS NOT NULL);
+
+-- 更新所有主题的 like_count (基于其初始帖子的点赞数)
+UPDATE forum_topics ft
+JOIN forum_posts fp ON ft.id = fp.topic_id AND fp.parent_post_id IS NULL
+SET ft.like_count = fp.like_count;
+
 
 -- --- 结束 示例数据插入 ---

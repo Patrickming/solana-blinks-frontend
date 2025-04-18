@@ -88,24 +88,31 @@ CREATE TABLE IF NOT EXISTS forum_topic_tags (
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主题与标签的关联';
 
--- 帖子点赞/反应表 (允许同一用户多次点赞同一帖子)
+-- 帖子点赞/反应表 (确保同一用户只能点赞同一帖子一次)
 CREATE TABLE IF NOT EXISTS forum_post_likes (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '点赞记录的唯一ID', -- 添加自增主键
+    -- 移除了自增ID, 使用 user_id 和 post_id 作为联合主键
     user_id INT NOT NULL COMMENT '点赞帖子的用户ID',
     post_id INT NOT NULL COMMENT '被点赞的帖子ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '点赞时间',
 
-    -- 移除了之前的 PRIMARY KEY (user_id, post_id)
+    PRIMARY KEY (user_id, post_id) COMMENT '确保每个用户只能点赞一个帖子一次',
 
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES forum_posts(id) ON DELETE CASCADE,
 
-    INDEX idx_like_user (user_id), -- 保留索引方便查询
-    INDEX idx_like_post (post_id)  -- 保留索引方便查询
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帖子点赞记录 (允许多次)';
+    -- 保留索引以优化查询
+    INDEX idx_like_user (user_id),
+    INDEX idx_like_post (post_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='帖子点赞记录 (唯一)';
 
 -- --- 可选: 用于冗余计数和活动时间戳的触发器 ---
 -- 这些可以提高性能，但会增加复杂性。如果需要，请实施它们。
+-- 注意: 触发器的正确实现和权限可能需要数据库管理员的关注。
+
+-- 删除可能存在的旧触发器以避免错误
+DROP TRIGGER IF EXISTS trg_after_post_insert;
+DROP TRIGGER IF EXISTS trg_after_like_insert;
+DROP TRIGGER IF EXISTS trg_after_like_delete;
 
 -- 示例触发器: 新帖子插入后更新主题的回复数和最后活动时间
 DELIMITER //
@@ -113,43 +120,79 @@ CREATE TRIGGER trg_after_post_insert
 AFTER INSERT ON forum_posts
 FOR EACH ROW
 BEGIN
-    -- 仅当不是初始帖子时才增加回复计数(假设初始帖子 parent_post_id 为 NULL 或有特定逻辑)
-    -- 简化逻辑: 为任何新帖子增加计数。如果初始帖子不应计数，请调整。
-    UPDATE forum_topics
-    SET reply_count = reply_count + 1,
-        last_activity_at = NEW.created_at,
-        last_activity_user_id = NEW.user_id
-    WHERE id = NEW.topic_id;
+    -- 仅当是回复帖 (parent_post_id 不为 NULL) 时才增加回复计数
+    -- 如果初始帖子的 parent_post_id IS NULL
+    IF NEW.parent_post_id IS NOT NULL THEN
+        UPDATE forum_topics
+        SET reply_count = reply_count + 1,
+            last_activity_at = NEW.created_at,
+            last_activity_user_id = NEW.user_id
+        WHERE id = NEW.topic_id;
+    ELSE
+        -- 如果是初始帖子，仅更新活动时间（回复数在主题创建时应为0）
+        UPDATE forum_topics
+        SET last_activity_at = NEW.created_at,
+            last_activity_user_id = NEW.user_id
+        WHERE id = NEW.topic_id;
+    END IF;
 END; //
 DELIMITER ;
 
--- 示例触发器: 点赞添加后更新帖子的点赞数
+-- 示例触发器: 点赞添加后更新帖子的点赞数，并可能更新主题的点赞数
 DELIMITER //
 CREATE TRIGGER trg_after_like_insert
 AFTER INSERT ON forum_post_likes
 FOR EACH ROW
 BEGIN
+    DECLARE initial_post_id INT;
+
+    -- 更新被点赞帖子的 like_count
     UPDATE forum_posts
     SET like_count = like_count + 1
     WHERE id = NEW.post_id;
 
-    -- 如果被点赞的帖子是初始帖子，也更新主题的点赞数
-    -- 需要识别初始帖子 (例如，检查它是否是该主题创建时间最早的帖子)
-    -- 这部分更复杂，可能更适合在应用逻辑或更复杂的触发器中处理。
+    -- 检查被点赞的帖子是否是其主题的初始帖子 (parent_post_id is NULL)
+    -- 并更新主题的 like_count
+    SELECT id INTO initial_post_id
+    FROM forum_posts
+    WHERE topic_id = (SELECT topic_id FROM forum_posts WHERE id = NEW.post_id)
+      AND parent_post_id IS NULL
+    LIMIT 1;
+
+    IF initial_post_id IS NOT NULL AND initial_post_id = NEW.post_id THEN
+        UPDATE forum_topics
+        SET like_count = like_count + 1
+        WHERE id = (SELECT topic_id FROM forum_posts WHERE id = NEW.post_id);
+    END IF;
 END; //
 DELIMITER ;
 
--- 示例触发器: 点赞移除后更新帖子的点赞数
+-- 示例触发器: 点赞移除后更新帖子的点赞数，并可能更新主题的点赞数
 DELIMITER //
 CREATE TRIGGER trg_after_like_delete
 AFTER DELETE ON forum_post_likes
 FOR EACH ROW
 BEGIN
+    DECLARE initial_post_id INT;
+
+    -- 更新被取消点赞帖子的 like_count
     UPDATE forum_posts
     SET like_count = GREATEST(0, like_count - 1) -- 确保计数不会低于 0
     WHERE id = OLD.post_id;
 
-    -- 如果必要，也更新主题的点赞数 (复杂度同上)
+    -- 检查被取消点赞的帖子是否是其主题的初始帖子 (parent_post_id is NULL)
+    -- 并更新主题的 like_count
+    SELECT id INTO initial_post_id
+    FROM forum_posts
+    WHERE topic_id = (SELECT topic_id FROM forum_posts WHERE id = OLD.post_id)
+      AND parent_post_id IS NULL
+    LIMIT 1;
+
+    IF initial_post_id IS NOT NULL AND initial_post_id = OLD.post_id THEN
+        UPDATE forum_topics
+        SET like_count = GREATEST(0, like_count - 1)
+        WHERE id = (SELECT topic_id FROM forum_posts WHERE id = OLD.post_id);
+    END IF;
 END; //
 DELIMITER ;
 

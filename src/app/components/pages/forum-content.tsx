@@ -247,10 +247,14 @@ export function ForumContent() {
                 >
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
-                      <div className="space-y-1 flex-grow mr-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <CardTitle className="text-lg mr-1">{topic.title}</CardTitle>
-                          
+                      <div className="flex-grow mr-2">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <CardTitle 
+                            className="text-lg font-semibold hover:text-primary transition-colors cursor-pointer line-clamp-1"
+                            onClick={(e: MouseEvent) => { e.stopPropagation(); handleTopicClick(topic.id); }}
+                          > 
+                            {topic.title}
+                          </CardTitle>
                           {/* Display dynamically selected tags */}
                           {currentSelectedTags.map(tagId => {
                             const tagInfo = AVAILABLE_TAGS.find(t => t.id === tagId)
@@ -258,14 +262,13 @@ export function ForumContent() {
                             return (
                               <Badge 
                                 key={tagId}
-                                variant="outline" // Use outline variant for better styling consistency with colors
-                                className={`border text-xs ${tagInfo.colorClasses}`} // Apply specific colors and ensure border
+                                variant="outline" 
+                                className={`border text-xs ${tagInfo.colorClasses}`} 
                               >
                                 {t(tagInfo.labelKey)}
                               </Badge>
                             )
                           })}
-
                           {/* Popover for Tag Selection */}
                           <Popover>
                             <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -287,7 +290,7 @@ export function ForumContent() {
                                       />
                                       <Label
                                         htmlFor={`tag-${topic.id}-${tag.id}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer" // Added cursor-pointer
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                                       >
                                         {t(tag.labelKey)}
                                       </Label>
@@ -298,14 +301,17 @@ export function ForumContent() {
                             </PopoverContent>
                           </Popover>
                         </div>
-                        <CardDescription className="line-clamp-2">{topic.content}</CardDescription>
                       </div>
+
+                      {/* 右侧: 分类 Badge (移到这里) */}
                       <Badge variant="outline" className="capitalize shrink-0">
                         {t(`forum.categories.${topic.category}`)}
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
+
+                  {/* 恢复 CardContent 并将作者信息放回 */}
+                  <CardContent className="pt-4"> {/* 添加一些上边距 */} 
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={topic.authorAvatar} alt={topic.author} />
@@ -317,20 +323,25 @@ export function ForumContent() {
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <div className="flex space-x-4">
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                        <MessageCircle className="h-4 w-4" />
-                        <span>{topic.replies}</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>{topic.likes}</span>
-                      </Button>
+
+                  {/* 恢复 CardFooter 结构，左侧统计，右侧分享 */}
+                  <CardFooter className="flex justify-between items-center pt-2 text-xs text-muted-foreground">
+                     {/* 左侧: 统计按钮 */} 
+                     <div className="flex items-center space-x-4">
+                        <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{topic.replies}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                            <ThumbsUp className="h-4 w-4" />
+                            <span>{topic.likes}</span>
+                        </Button>
                     </div>
+
+                    {/* 右侧: 分享按钮 */} 
                     <Button variant="outline" size="sm" className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
-                      <Share2 className="h-4 w-4 mr-1" />
-                      {t("forum.actions.share")}
+                        <Share2 className="h-4 w-4 mr-1" />
+                        {t("forum.actions.share")}
                     </Button>
                   </CardFooter>
                 </Card>

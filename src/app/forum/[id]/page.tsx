@@ -13,7 +13,7 @@ import { SiteHeader } from "@/app/components/layout/site-header"
  * @param params - Next.js 自动注入的路由参数对象，包含动态段 `id`。
  * @returns {JSX.Element}
  */
-export default function TopicDetailPage({ params }: { params: { id: string } }) {
+export default async function TopicDetailPage({ params }: { params: { id: string } }) {
   // 从路由参数中获取话题 ID
   const topicId = params.id
   
