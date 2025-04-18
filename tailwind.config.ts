@@ -9,6 +9,25 @@ const config = {
     "./src/**/*.{ts,tsx}",
     "*.{js,ts,jsx,tsx,mdx}",
   ],
+  // Add safelist for dynamic tag classes
+  safelist: [
+    'bg-red-500/20',
+    'text-red-500',
+    'border-red-500/30',
+    'bg-primary/20',
+    'text-primary',
+    'border-primary/30',
+    'bg-yellow-500/20',
+    'text-yellow-600',
+    'border-yellow-500/30',
+    'bg-green-500/20',
+    'text-green-600',
+    'border-green-500/30',
+    // Add the fallback classes used in forum-content.tsx as well, just in case
+    'bg-secondary',
+    'text-secondary-foreground',
+    'border-border',
+  ],
   prefix: "",
   theme: {
     container: {

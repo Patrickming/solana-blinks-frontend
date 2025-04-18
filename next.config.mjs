@@ -46,10 +46,6 @@ const nextConfig = {
   },
   // 设置输出模式为独立部署 (生成包含所有依赖的 .next/standalone 目录)
   output: 'standalone',
-  // 启用字体优化
-  optimizeFonts: true,
-  // 添加 critters 进行 CSS 优化 (已废弃，现在是默认行为，但保留可能为了兼容性)
-  optimizeCss: true,
   webpack: (config) => {
     let existingWebpackConfig = config;
     
