@@ -12,7 +12,7 @@ import { WalletProvider } from "@/app/context/wallet-context"
 import { SidebarProvider } from "@/app/context/sidebar-context"
 import { AuthProvider } from "@/app/context/auth-context"
 import { LanguageProvider } from "@/app/context/language-context"
-import { Toaster as SonnerToaster } from "sonner"
+import { Toaster } from "@/app/components/ui/toaster"
 
 // 配置 Inter 字体，指定仅加载 latin 子集以减小体积
 const inter = Inter({ subsets: ["latin"] })
@@ -123,8 +123,8 @@ export default function RootLayout({
                        {children}
                     </div>
                     
-                    {/* Global Toaster Component from Sonner */}
-                    <SonnerToaster richColors position="top-right" theme="system" />
+                    {/* Change back to shadcn/ui Toaster */}
+                    <Toaster />
                   </div>
                 </SidebarProvider>
               </LanguageProvider>

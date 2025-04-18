@@ -132,10 +132,10 @@ export async function GET(request) {
     let initialPostContents = {};
     if (topicIds.length > 0) {
         const contentQuery = `
-            SELECT topic_id, LEFT(content, 50) as content_snippet 
+            SELECT topic_id, LEFT(content, 150) as content_snippet 
             FROM forum_posts 
             WHERE topic_id IN (?) AND parent_post_id IS NULL
-        `; // Fetch first 50 chars
+        `; // Fetch first 150 chars
         const [contentRows] = await connection.query(contentQuery, [topicIds]);
         contentRows.forEach(row => {
             initialPostContents[row.topic_id] = row.content_snippet;

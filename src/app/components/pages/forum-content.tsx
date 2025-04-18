@@ -25,7 +25,7 @@ import { Checkbox } from "@/app/components/ui/checkbox"
 import { MessageSquare, ThumbsUp, Share2, Search, Plus, MessageCircle, Tag, Loader2 } from "lucide-react"
 import { useLanguage } from "@/app/context/language-context"
 import { useAuth } from "@/app/context/auth-context"
-import { toast } from "sonner"
+import { useToast } from "@/app/components/ui/use-toast"
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN } from 'date-fns/locale'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/app/components/ui/pagination"
@@ -138,6 +138,7 @@ export function ForumContent() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
+  const { toast } = useToast();
 
   // --- State Variables ---
   const [isLoading, setIsLoading] = useState(true);
@@ -184,12 +185,16 @@ export function ForumContent() {
       } catch (err: any) {
         const errorMsg = `无法加载分类或标签: ${err.message}`;
         setError(errorMsg);
-        toast.error('加载论坛初始数据失败', { description: err.message });
+        toast({ 
+            title: "加载论坛初始数据失败", 
+            description: err.message, 
+            variant: "destructive"
+        });
       }
       // Loading for topics list will be handled separately
     };
     fetchInitialData();
-  }, [t]);
+  }, [t, toast]);
 
   // Fetch Topics List
   const fetchTopics = useCallback(async (pageToFetch: number) => {
@@ -232,9 +237,13 @@ export function ForumContent() {
       setError(errorMsg);
       setTopics([]); 
       setTopicsTotalPages(1);
-      toast.error('加载主题列表失败', { description: err.message });
+      toast({ 
+          title: "加载主题列表失败", 
+          description: err.message, 
+          variant: "destructive" 
+      });
     } finally { setIsLoading(false); }
-  }, [selectedCategory, searchTermDebounced, categories, t]);
+  }, [selectedCategory, searchTermDebounced, categories, t, toast]);
 
   // Debounce search term
    useEffect(() => {
@@ -277,7 +286,11 @@ export function ForumContent() {
   // Handle Tag Selection Change - Now includes API call and immediate UI update
   const handleTagSelectionChange = async (topicId: number, tagId: number, checked: boolean | "indeterminate") => {
     if (!user) {
-        toast.error("请先登录以修改标签");
+        toast({ 
+            title: "请先登录", 
+            description: "您需要登录才能修改标签", 
+            variant: "destructive" 
+        });
         return;
     }
     
@@ -307,7 +320,7 @@ export function ForumContent() {
             method: 'PUT',
             body: JSON.stringify({ tagIds: newTagIds }),
         });
-        toast.success("标签已更新");
+        toast({ title: "标签已更新" });
 
         // 4. Update main 'topics' state for immediate badge update
         // Find the full tag objects corresponding to the new IDs
@@ -321,7 +334,11 @@ export function ForumContent() {
         }));
 
     } catch (err: any) {
-        toast.error("更新标签失败", { description: err.message });
+        toast({ 
+            title: "更新标签失败", 
+            description: err.message, 
+            variant: "destructive" 
+        });
         // Rollback optimistic checkbox update on error
         setSelectedTopicTags(prev => {
              const originalTopic = topics.find(t => t.id === topicId);
@@ -348,11 +365,19 @@ export function ForumContent() {
   // Handle Create New Topic Submission
   const handleCreateTopic = async () => {
     if (!user) {
-        toast.error("请先登录后再发帖");
+        toast({ 
+            title: "请先登录", 
+            description: "您需要登录才能发帖", 
+            variant: "destructive" 
+        });
         return;
     }
     if (!newTopicTitle.trim() || !newTopicContent.trim() || !newTopicCategoryId) {
-      toast.error(t("forum.validation.description"));
+      toast({ 
+          title: t("forum.validation.title"),
+          description: t("forum.validation.description"), 
+          variant: "destructive" 
+      });
       return;
     }
 
@@ -374,7 +399,7 @@ export function ForumContent() {
       });
 
       if (newTopicResponse && newTopicResponse.id) {
-        toast.success(t("forum.success.description"));
+        toast({ title: t("forum.success.title") });
         
         // Reset form state
         setNewTopicTitle("");
@@ -395,7 +420,11 @@ export function ForumContent() {
       }
 
     } catch (err: any) {
-      toast.error('创建主题失败', { description: err.message });
+      toast({ 
+          title: "创建主题失败", 
+          description: err.message, 
+          variant: "destructive" 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -418,19 +447,30 @@ export function ForumContent() {
   // Handler for confirming the delete action
   const handleConfirmDelete = async () => {
     if (!topicToDeleteId) return;
-    if (!user) { toast.error("请先登录"); return; }
+    if (!user) { 
+        toast({ 
+            title: "请先登录", 
+            description: "您需要登录才能删除话题", 
+            variant: "destructive" 
+        });
+        return; 
+    }
 
     setIsDeleting(true);
     try {
         await fetchApi(`/api/forum/topics/${topicToDeleteId}`, { method: 'DELETE' });
-        toast.success("话题删除成功");
+        toast({ title: "话题删除成功" });
         // Remove the topic from the list immediately
         setTopics(prevTopics => prevTopics.filter(t => t.id !== topicToDeleteId));
         // Optionally adjust pagination if needed, e.g., if the last item on the page was deleted
         // This logic can be complex, maybe just let user navigate for now.
         setIsConfirmOpen(false); // Close the dialog
     } catch (err: any) {
-         toast.error("删除话题失败", { description: err.message });
+         toast({ 
+             title: "删除话题失败", 
+             description: err.message, 
+             variant: "destructive" 
+         });
     } finally {
         setIsDeleting(false);
         setTopicToDeleteId(null); // Reset topic to delete
@@ -443,7 +483,11 @@ export function ForumContent() {
     e.stopPropagation(); // Prevent card click
 
     if (!navigator.clipboard) {
-        toast.error("浏览器不支持复制功能或页面非安全环境 (HTTPS)");
+        toast({ 
+            title: "复制失败", 
+            description: "浏览器不支持复制功能或页面非安全环境 (HTTPS)", 
+            variant: "destructive" 
+        });
         return;
     }
 
@@ -451,10 +495,14 @@ export function ForumContent() {
 
     try {
         await navigator.clipboard.writeText(topicUrl);
-        toast.success("话题链接已复制到剪贴板！");
+        toast({ title: "复制成功", description: "话题链接已复制到剪贴板！" });
     } catch (err) {
         console.error('无法复制链接:', err);
-        toast.error("复制链接失败", { description: "请手动复制链接。" });
+        toast({ 
+            title: "复制链接失败", 
+            description: "请手动复制链接。", 
+            variant: "destructive" 
+        });
     }
   };
 
@@ -671,10 +719,12 @@ export function ForumContent() {
                             )}
                           </div>
                         </div>
+                        {/* Content Snippet - Using ReactMarkdown */}
                         {topic.content_snippet && (
                             <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground line-clamp-2 text-sm">
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {topic.content_snippet + (topic.content_snippet.length === 50 ? '...' : '')}
+                                    {/* Rely on line-clamp for ellipsis */} 
+                                    {topic.content_snippet}
                                 </ReactMarkdown>
                             </div>
                         )}
