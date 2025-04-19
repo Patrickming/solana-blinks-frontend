@@ -44,7 +44,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { fetchApi } from '@/lib/utils';
 import { useDebounce } from '../../../hooks/use-debounce';
 import path from 'path'; // 需要 path 来处理文件名
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/app/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/app/components/ui/dialog";
 import { useAuth } from "@/app/context/auth-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Label } from "@/app/components/ui/label";
@@ -692,9 +692,12 @@ export function TutorialsContent({ courses }: { courses: Course[] }) { // Accept
                      <form onSubmit={handleUploadSubmit}>
                        <DialogHeader>
                          <DialogTitle>上传新教程文档</DialogTitle>
+                         {/* Removed DialogDescription */}
+                         {/* 
                          <DialogDescription>
                            填写文档信息并选择要上传的文件。
                          </DialogDescription>
+                         */}
                        </DialogHeader>
                        <div className="grid gap-6 py-4">
                          {/* 标题 */}
