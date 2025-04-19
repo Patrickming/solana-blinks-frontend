@@ -32,6 +32,8 @@ import {
   UploadCloud,
   PlusCircle,
   XCircle,
+  FileImage,
+  Trash2,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -46,6 +48,17 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuth } from "@/app/context/auth-context";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Label } from "@/app/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
 
 // --- Data Types ---
 
@@ -140,7 +153,7 @@ const courses = [
 ];
 
 // --- Static Technical Document Data (Restored) ---
-const technicalDocuments = [
+  const technicalDocuments = [
     {
       id: "doc-1",
       title: "Solana Blinks API 参考文档",
@@ -171,21 +184,21 @@ const technicalDocuments = [
       downloads: 876,
       tags: ["SDK", "开发", "指南"],
     },
-     {
-       id: "doc-3",
-       title: "Solana 交易结构详解",
-       description: "深入解析 Solana 交易结构和签名机制",
-       author: "技术专家",
-       authorAvatar: "/placeholder.svg?height=40&width=40&text=T",
-       fileType: "pdf",
-       fileSize: "1.7 MB",
-       downloadUrl: "#",
-       uploadDate: "2024-01-10",
-       category: "technical",
-       version: "v1.0.0",
-       downloads: 543,
-       tags: ["交易", "技术", "深入"],
-     },
+    {
+      id: "doc-3",
+      title: "Solana 交易结构详解",
+      description: "深入解析 Solana 交易结构和签名机制",
+      author: "技术专家",
+      authorAvatar: "/placeholder.svg?height=40&width=40&text=T",
+      fileType: "pdf",
+      fileSize: "1.7 MB",
+      downloadUrl: "#",
+      uploadDate: "2024-01-10",
+      category: "technical",
+      version: "v1.0.0",
+      downloads: 543,
+      tags: ["交易", "技术", "深入"],
+    },
 ];
 
 /**
@@ -245,6 +258,9 @@ export function TutorialsContent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [newTagName, setNewTagName] = useState(""); // 新标签名称输入状态
   const [isCreatingTag, setIsCreatingTag] = useState(false); // 创建标签加载状态
+
+  // --- Delete Confirmation State ---
+  const [isDeleting, setIsDeleting] = useState<number | null>(null); // 存储正在删除的文档 ID
 
   // --- Data Fetching Callbacks ---
 
@@ -482,11 +498,22 @@ export function TutorialsContent() {
         link.click();
         document.body.removeChild(link);
 
-        // TODO: 可以考虑调用一个 API 来增加 download_count
-        // fetchApi(`/api/tutorials/documents/${doc.id}/download`, { method: 'POST' });
+        // --- 调用 API 增加 download_count (异步, 不阻塞) ---
+        fetchApi(`/api/tutorials/documents/${doc.id}/download`, { method: 'POST' })
+          .then(() => {
+            console.log(`Incremented download count for doc ${doc.id}`);
+            // 可以在这里触发文档列表的重新获取，以便实时更新下载次数
+            // 但为了避免频繁刷新，暂时只在控制台记录
+            fetchDocuments(docsPage); // 取消注释以启用实时刷新
+          })
+          .catch(error => {
+            console.error(`Failed to increment download count for doc ${doc.id}:`, error);
+            // 可以选择性地向用户显示一个非阻塞的错误提示
+            // toast({ title: "提示", description: "更新下载次数失败，但不影响下载。", variant: "default" });
+          });
+        // --- 结束 API 调用 ---
 
-        // --- 修改 Toast 消息 --- 
-        toast({ title: "开始下载", description: `正在准备下载 ${doc.title}` }); // 移除"（模拟）"
+        toast({ title: "开始下载", description: `正在准备下载 ${doc.title}` });
 
     } catch (error) {
          console.error("下载文件时出错:", error);
@@ -494,20 +521,39 @@ export function TutorialsContent() {
     }
   };
 
-  // 获取文件图标
+  // 获取文件图标 (优化)
   const getFileIcon = (fileType: string | null) => {
-    switch (fileType?.toLowerCase()) {
-      case "pdf":
-        return <FileText className="h-full w-full text-red-500" />
-      case "doc":
-      case "docx":
-        return <FileText className="h-full w-full text-blue-500" />
-      case "zip":
-        return <FileCode className="h-full w-full text-yellow-500" />
-      case "md":
-        return <BookOpen className="h-full w-full text-green-500" />
+    const typeLower = fileType?.toLowerCase() || ''; // 转小写并处理 null
+
+    if (typeLower.startsWith('image/')) {
+      // 图片类型 (jpeg, png, gif, svg etc.)
+      return <FileImage className="h-full w-full text-purple-500" />; // 使用紫色区分
+    } 
+    
+    switch (typeLower) {
+      case 'application/pdf':
+        return <FileText className="h-full w-full text-red-500" />;
+      case 'application/msword': // .doc
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': // .docx
+        return <FileText className="h-full w-full text-blue-500" />;
+      case 'application/zip':
+      case 'application/x-zip-compressed':
+        return <FileCode className="h-full w-full text-yellow-500" />;
+      case 'text/markdown':
+      case 'text/x-markdown': // 另一种可能的 MIME 类型
+        return <BookOpen className="h-full w-full text-green-500" />;
+      // 可以根据需要添加更多类型，例如表格 (excel), 演示文稿 (ppt) 等
+      // case 'application/vnd.ms-excel':
+      // case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      //  return <Sheet className="h-full w-full text-emerald-500" />;
+      // case 'application/vnd.ms-powerpoint':
+      // case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+      //  return <Presentation className="h-full w-full text-orange-500" />;
       default:
-        return <File className="h-full w-full text-gray-500" />
+        // 默认图标，可以考虑根据扩展名做最后判断 (如果 MIME 不明确)
+        // const extension = fileType ? path.extname(fileType).toLowerCase() : ''; 
+        // if (extension === '.md') return <BookOpen className="h-full w-full text-green-500" />;
+        return <File className="h-full w-full text-gray-500" />;
     }
   }
 
@@ -655,6 +701,30 @@ export function TutorialsContent() {
     }
   };
 
+  // --- 修改删除流程 ---
+  // 2. 用户在对话框中确认后，执行实际删除 (接受 doc 参数)
+  const confirmDeleteDocument = async (docToDelete: TutorialDocument) => {
+    if (!docToDelete) return;
+
+    setIsDeleting(docToDelete.id); // 开始删除，设置加载状态（使用 ID）
+    console.log(`[confirmDeleteDocument] Deleting doc ID: ${docToDelete.id}`);
+
+    try {
+      await fetchApi(`/api/tutorials/documents/${docToDelete.id}`, {
+        method: 'DELETE',
+      });
+      toast({ title: "删除成功", description: `文档 "${docToDelete.title}" 已被删除。` });
+      fetchDocuments(docsPage); // 刷新列表
+
+    } catch (error: any) {
+      console.error(`[confirmDeleteDocument] API call failed for doc ID: ${docToDelete.id}:`, error);
+      toast({ title: "删除失败", description: error.message || '发生未知错误', variant: "destructive" });
+      // 对话框会自动关闭，错误已提示
+    } finally {
+      setIsDeleting(null); // 结束删除，清除加载状态
+    }
+  };
+
   return (
     <div>
       {/* Remove the top Call to Action Buttons block */}
@@ -669,7 +739,7 @@ export function TutorialsContent() {
                {t("tutorials.bootcamp")} <span className="ml-1.5">►</span>
              </Link>
            </Button>
-         </div>
+                    </div>
       )}
       */}
 
@@ -686,10 +756,10 @@ export function TutorialsContent() {
           {/* Technical Documents Section */}
           <Card className="glass-morphism">
                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                 <div>
+              <div>
                    <CardTitle>技术文档库</CardTitle>
                    <CardDescription>查找 API 参考、SDK 指南和技术文章。</CardDescription>
-                 </div>
+              </div>
                  {/* --- 上传文档按钮和对话框 --- */}
                  <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                    <DialogTrigger asChild>
@@ -697,7 +767,7 @@ export function TutorialsContent() {
                      {user && (
                        <Button variant="outline">
                          <FilePlus className="mr-2 h-4 w-4" /> 上传文档
-                       </Button>
+              </Button>
                      )}
                    </DialogTrigger>
                    <DialogContent className="sm:max-w-[600px]">
@@ -780,19 +850,43 @@ export function TutorialsContent() {
                            <Label htmlFor="version" className="text-right">版本号</Label>
                            <Input id="version" name="version" value={uploadFormData.version} onChange={handleUploadInputChange} className="col-span-3" placeholder="例如: v1.0.0 (可选)"/>
                          </div>
-                         {/* 文件选择 */}
-                         <div className="grid grid-cols-4 items-center gap-4">
-                           <Label htmlFor="file" className="text-right">文件 <span className="text-red-500">*</span></Label>
-                           <Input id="file" name="file" type="file" onChange={handleFileSelect} className="col-span-3" ref={fileInputRef} required />
-                         </div>
-                         {/* 显示已选文件信息 */}
-                         {selectedFile && (
-                           <div className="grid grid-cols-4 items-center gap-4">
-                              <div className="col-start-2 col-span-3 text-sm text-muted-foreground">
-                                已选择: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                              </div>
-                           </div>
-                          )}
+                         {/* 文件选择 (优化样式) */}
+                         <div className="grid grid-cols-4 items-start gap-4"> {/* Changed items-center to items-start for better alignment */}
+                           <Label htmlFor="file" className="text-right pt-3">文件 <span className="text-red-500">*</span></Label>
+                           <div className="col-span-3">
+                              <label
+                                 htmlFor="file"
+                                 className="flex flex-col items-center justify-center w-full h-32 px-4 transition bg-background border-2 border-dashed rounded-md appearance-none cursor-pointer hover:border-primary focus:outline-none"
+                              >
+                                 <span className="flex items-center space-x-2">
+                                    <UploadCloud className="w-6 h-6 text-gray-600" />
+                                    <span className="font-medium text-gray-600">
+                                       点击选择文件或
+                                       <span className="text-primary underline">浏览</span>
+                                    </span>
+                                 </span>
+                                 <span className="text-xs text-gray-500 mt-1">
+                                    支持 PDF, DOCX, MD, ZIP, 图片等
+                                 </span>
+                              </label>
+                              {/* Hidden actual file input */}
+                              <Input
+                                 id="file"
+                                 name="file"
+                type="file"
+                                 onChange={handleFileSelect}
+                                 className="sr-only" // Hide the default input
+                ref={fileInputRef}
+                                 required
+                              />
+                              {/* 显示已选文件信息 */}
+                              {selectedFile && (
+                                 <div className="mt-2 text-sm text-muted-foreground">
+                                   已选择: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </div>
+                              )}
+                    </div>
+                    </div>
                        </div>
                        <DialogFooter>
                          <DialogClose asChild>
@@ -811,15 +905,15 @@ export function TutorialsContent() {
                   {/* Search and Filters */}
                   <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                       <div className="relative flex-grow w-full md:w-auto">
-                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                         <Input
-                            type="search"
-                            placeholder="搜索文档..."
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="搜索文档..."
                             className="pl-8 w-full"
                             value={docSearchQuery}
                             onChange={(e) => setDocSearchQuery(e.target.value)}
-                         />
-                      </div>
+                    />
+                  </div>
                       <div className="flex flex-wrap gap-2 justify-center">
                         <Badge
                            variant={selectedCategory === null ? "default" : "outline"}
@@ -827,7 +921,7 @@ export function TutorialsContent() {
                            onClick={() => handleCategoryFilter(null)}
                         >
                            全部分类
-                        </Badge>
+                  </Badge>
                         {categories.map(cat => (
                             <Badge
                                 key={cat.id}
@@ -836,11 +930,11 @@ export function TutorialsContent() {
                                 onClick={() => handleCategoryFilter(cat.id)}
                             >
                                {cat.name}
-                            </Badge>
+                  </Badge>
                         ))}
                       </div>
-                  </div>
-                  
+                </div>
+
                   {/* Content Area: Loading, Error, List, or No Results */}
                   <div className="mt-4"> { /* Wrapper for conditional content */ }
                      {isLoadingDocs ? (
@@ -855,67 +949,105 @@ export function TutorialsContent() {
                       ) : documents.length > 0 ? (
                         // Render list only if not loading, no error, and documents exist
                         <div className="space-y-3">
-                           {documents.map((doc) => (
-                              <div key={doc.id} className="group relative flex flex-col bg-card/80 rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-all">
-                                 {/* Document Card Structure */}
-                                  <div className="flex p-4">
-                                     {/* Icon */} 
-                                     <div className="mr-4 flex-shrink-0">
-                                        <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">{getFileIcon(doc.file_type)}</div>
-                                     </div>
-                                     {/* Text Content */}
-                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-base font-medium truncate">{doc.title}</h4>
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{doc.description}</p>
-                                        <div className="flex flex-wrap gap-1 mt-2">
-                                           {doc.tags.map((tag) => (
-                                              <Badge key={tag.id} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/20" onClick={(e) => { e.stopPropagation(); handleTagFilter(tag.id); }}>{tag.name}</Badge>
-                                           ))}
-                                        </div>
-                                     </div>
-                                  </div>
-                                  {/* Footer */} 
-                                  <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-t">
-                                     <div className="flex items-center text-xs text-muted-foreground">
-                                        <div className="flex items-center mr-3"><Calendar className="h-3 w-3 mr-1" /><span>{format(new Date(doc.created_at), "yyyy-MM-dd")}</span></div>
-                                        <div className="flex items-center mr-3"><FileText className="h-3 w-3 mr-1" /><span>{doc.file_type?.toUpperCase() || 'N/A'} · {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)} MB` : 'N/A'}</span></div>
-                                        <div className="flex items-center"><Download className="h-3 w-3 mr-1" /><span>{doc.download_count}</span></div>
-                                     </div>
-                                     <div className="flex items-center gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-8 px-2 text-xs"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDownload(doc);
-                                          }}
-                                          disabled={!doc.file_path}
-                                        >
-                                          <Download className="h-4 w-4 mr-1" />下载
-                                        </Button>
-                                     </div>
-                                  </div>
-                                  {/* Version Badge */} 
-                                  {doc.version && (<div className="absolute top-0 right-0 p-2"><Badge variant="outline" className="bg-primary/10 text-primary text-xs">{doc.version}</Badge></div>)}
-                               </div>
-                           ))}
-                         </div>
-                      ) : (
+                           {documents.map((doc) => {
+                              return (
+                                <div key={doc.id} className="group relative flex flex-col bg-card/80 rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-all">
+                                  {/* Document Card Structure */}
+                        <div className="flex p-4">
+                                      {/* Icon */} 
+                          <div className="mr-4 flex-shrink-0">
+                                         <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">{getFileIcon(doc.file_type)}</div>
+                            </div>
+                                      {/* Text Content */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base font-medium truncate">{doc.title}</h4>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{doc.description}</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                                            {doc.tags.map((tag) => (
+                                               <Badge key={tag.id} variant="secondary" className="text-xs cursor-pointer hover:bg-primary/20" onClick={(e) => { e.stopPropagation(); handleTagFilter(tag.id); }}>{tag.name}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                                   {/* Footer */} 
+                        <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-t">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                                         <div className="flex items-center mr-3"><Calendar className="h-3 w-3 mr-1" /><span>{format(new Date(doc.created_at), "yyyy-MM-dd")}</span></div>
+                                         <div className="flex items-center mr-3"><FileText className="h-3 w-3 mr-1" /><span>{doc.file_type?.toUpperCase() || 'N/A'} · {doc.file_size ? `${(doc.file_size / 1024 / 1024).toFixed(1)} MB` : 'N/A'}</span></div>
+                                         <div className="flex items-center"><Download className="h-3 w-3 mr-1" /><span>{doc.download_count}</span></div>
+                            </div>
+                                      <div className="flex items-center gap-1"> { /* 调整按钮间距 */ }
+                                  <Button
+                                    variant="ghost"
+                                           size="icon" // 改为图标按钮
+                                           className="h-8 w-8 text-xs"
+                                           onClick={(e) => { e.stopPropagation(); handleDownload(doc); }}
+                                           disabled={!doc.file_path}
+                                           title="下载" // 添加 tooltip 提示
+                                         >
+                                           <Download className="h-4 w-4" />
+                                  </Button>
+                                         {/* 删除按钮 - 条件渲染 + AlertDialog 结构 */}
+                                         {user && Number(user.id) === doc.author.id && (
+                                           <AlertDialog> {/* 每个按钮都有自己的 AlertDialog 上下文 */}
+                                             <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                                                 size="icon"
+                                                 className="h-8 w-8 text-xs text-red-500 hover:text-red-600"
+                                                 onClick={(e) => { e.stopPropagation(); }}
+                                                 disabled={isDeleting === doc.id} // 正在删除时禁用触发器
+                                                 title="删除"
+                                               >
+                                                 {isDeleting === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                            </Button>
+                                             </AlertDialogTrigger>
+                                             {/* 对话框内容现在与触发器在同一个 AlertDialog 上下文中 */}
+                                             <AlertDialogContent>
+                                               <AlertDialogHeader>
+                                                 <AlertDialogTitle>确认删除?</AlertDialogTitle>
+                                                 <AlertDialogDescription>
+                                                   您确定要删除文档 "<span className="font-semibold">{doc.title}</span>" 吗？
+                                                   此操作将永久删除文档及其关联信息，无法恢复。
+                                                 </AlertDialogDescription>
+                                               </AlertDialogHeader>
+                                               <AlertDialogFooter>
+                                                 <AlertDialogCancel disabled={isDeleting === doc.id}>取消</AlertDialogCancel>
+                                                 <AlertDialogAction
+                                                   onClick={() => confirmDeleteDocument(doc)} // 直接传递当前 doc
+                                                   disabled={isDeleting === doc.id}
+                                                   className="bg-red-600 hover:bg-red-700"
+                                                 >
+                                                   {isDeleting === doc.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                                   确认删除
+                                                 </AlertDialogAction>
+                                               </AlertDialogFooter>
+                                             </AlertDialogContent>
+                                           </AlertDialog>
+                                         )}
+                          </div>
+                        </div>
+                                   {/* Version Badge */} 
+                                   {doc.version && (<div className="absolute top-0 right-0 p-2"><Badge variant="outline" className="bg-primary/10 text-primary text-xs">{doc.version}</Badge></div>)}
+                        </div>
+                              );
+                           })}
+                      </div>
+                  ) : (
                          // Render no results only if not loading, no error, and documents array is empty
-                         <div className="text-center py-12 border rounded-lg">
-                           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="text-center py-12 border rounded-lg">
+                      <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                            <p className="text-muted-foreground">
                               {docSearchQuery || selectedCategory || selectedTag ? "未找到匹配的文档" : "暂无文档"}
                            </p>
                               {(docSearchQuery || selectedCategory || selectedTag) && (
                                 <Button variant="link" onClick={() => { setDocSearchQuery(''); handleCategoryFilter(null); handleTagFilter(null); }} className="mt-2">
                                   清除筛选/搜索
-                                </Button>
+                      </Button>
                              )}
-                         </div>
-                      )}
-                  </div>
+                          </div>
+                        )}
+                      </div>
 
                   {/* Pagination for Documents (...) */}
                    {!isLoadingDocs && docsTotalPages > 1 && (
@@ -929,9 +1061,9 @@ export function TutorialsContent() {
                               <PaginationItem><PaginationNext href="#" onClick={(e) => { e.preventDefault(); handleDocsPageChange(docsPage + 1); }} aria-disabled={docsPage >= docsTotalPages} className={docsPage >= docsTotalPages ? 'pointer-events-none opacity-50' : ''}/></PaginationItem>
                           </PaginationContent>
                       </Pagination>
-                   )}
-               </CardContent>
-           </Card>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Restore Feedback Card if needed */}
           {/* <Card className="glass-morphism"> ... </Card> */}
@@ -950,11 +1082,11 @@ export function TutorialsContent() {
                       value={courseSearchQuery}
                       onChange={(e) => setCourseSearchQuery(e.target.value)}
                   />
-              </div>
+                </div>
               <Button onClick={handleUploadCourse} variant="outline" className="w-full md:w-auto">
                   <Upload className="mr-2 h-4 w-4" /> 上传新课程
                </Button>
-          </div>
+                </div>
 
           {/* Course Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -973,12 +1105,13 @@ export function TutorialsContent() {
                      <p className="text-muted-foreground">未找到匹配的课程</p>
                      <Button variant="link" onClick={() => setCourseSearchQuery("")} className="mt-2">
                        清除搜索
-                     </Button>
+              </Button>
                    </div>
               )}
           </div>
         </TabsContent>
       </Tabs>
+
     </div>
   );
 }
