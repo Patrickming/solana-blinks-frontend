@@ -1,14 +1,15 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion"
-import { Button } from "@/app/components/ui/button"
-import { Textarea } from "@/app/components/ui/textarea"
-import { useToast } from "@/app/components/ui/use-toast"
+import React, { useState, useRef } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { Button } from "@/app/components/ui/button";
+import Link from 'next/link';
+import { CourseCard } from "@/app/components/tutorials/course-card"; // Assume this will be created
+import { useLanguage } from "@/app/context/language-context";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
+import { Textarea } from "@/app/components/ui/textarea";
+import { useToast } from "@/app/components/ui/use-toast";
 import {
   PlayCircle,
   FileText,
@@ -25,39 +26,65 @@ import {
   BookOpen,
   FileCode,
   FilePlus,
-} from "lucide-react"
-import { useLanguage } from "@/context/language-context"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+  Edit,
+  Upload,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-/**
- * 教程内容组件
- * 包含视频教程、文档、反馈和文档上传/发布功能。
- */
-export function TutorialsContent() {
-  const [feedback, setFeedback] = useState("")
-  const { toast } = useToast()
-  const { t, currentLanguage } = useLanguage()
-  const [searchQuery, setSearchQuery] = useState("")
+// --- Static Course Data (Temporary) ---
+// Replace with actual data or fetch from API later
+const courses = [
+  {
+    slug: "intro-crypto-clients",
+    title: "Introduction to cryptography and Solana clients",
+    lessons: 6,
+    description: "Learn the basics of how to interact with the Solana blockchain.",
+    imageUrl: "/images/tutorials/course-placeholder-1.png" // Example placeholder
+  },
+  {
+    slug: "tokens-nfts",
+    title: "Tokens and NFTs on Solana",
+    lessons: 4,
+    description: "Create tokens and NFTs on Solana.",
+    imageUrl: "/images/tutorials/course-placeholder-2.png"
+  },
+  {
+    slug: "onchain-program-development",
+    title: "Onchain program development",
+    lessons: 6,
+    description: "Build onchain programs (sometimes called 'smart contracts') with Anchor.",
+    imageUrl: "/images/tutorials/course-placeholder-3.png"
+  },
+  {
+    slug: "anchor-data-feeds",
+    title: "Anchor data feeds",
+    lessons: 2,
+    description: "Connect to offchain data from inside your Anchor programs.",
+    imageUrl: "/images/tutorials/course-placeholder-1.png"
+  },
+    {
+    slug: "token-extensions",
+    title: "Token extensions",
+    lessons: 15,
+    description: "Create tokens with features like non-transferability, transfer hooks, and more.",
+    imageUrl: "/images/tutorials/course-placeholder-2.png"
+  },
+    {
+    slug: "rust-program-development",
+    title: "Rust program development",
+    lessons: 9,
+    description: "Learn how to build Solana programs without using Anchor.",
+    imageUrl: "/images/tutorials/course-placeholder-3.png"
+  },
+  // Add more courses based on the image/link...
+];
 
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Array<{
-      name: string
-      size: number
-      type: string
-      progress: number
-      status: "uploading" | "success" | "error"
-      errorMessage?: string
-    }>
-  >([])
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isUploading, setIsUploading] = useState(false)
-
-  // 预设的技术文档列表
-  const technicalDocuments = [
+// --- Static Technical Document Data (Restored) ---
+const technicalDocuments = [
     {
       id: "doc-1",
       title: "Solana Blinks API 参考文档",
@@ -88,60 +115,69 @@ export function TutorialsContent() {
       downloads: 876,
       tags: ["SDK", "开发", "指南"],
     },
-    {
-      id: "doc-3",
-      title: "Solana 交易结构详解",
-      description: "深入解析 Solana 交易结构和签名机制",
-      author: "技术专家",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=T",
-      fileType: "pdf",
-      fileSize: "1.7 MB",
-      downloadUrl: "#",
-      uploadDate: "2024-01-10",
-      category: "technical",
-      version: "v1.0.0",
-      downloads: 543,
-      tags: ["交易", "技术", "深入"],
-    },
-    {
-      id: "doc-4",
-      title: "Blinks 安全最佳实践",
-      description: "使用 Solana Blinks 的安全最佳实践和注意事项",
-      author: "安全团队",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=S",
-      fileType: "pdf",
-      fileSize: "1.2 MB",
-      downloadUrl: "#",
-      uploadDate: "2024-02-05",
-      category: "security",
-      version: "v1.1.0",
-      downloads: 921,
-      tags: ["安全", "最佳实践", "指南"],
-    },
-    {
-      id: "doc-5",
-      title: "Blinks 集成示例代码",
-      description: "各种语言和框架的 Blinks 集成示例代码",
-      author: "社区贡献者",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=C",
-      fileType: "zip",
-      fileSize: "4.5 MB",
-      downloadUrl: "#",
-      uploadDate: "2024-02-20",
-      category: "code",
-      version: "v1.0.2",
-      downloads: 1532,
-      tags: ["代码", "示例", "集成"],
-    },
-  ]
+     {
+       id: "doc-3",
+       title: "Solana 交易结构详解",
+       description: "深入解析 Solana 交易结构和签名机制",
+       author: "技术专家",
+       authorAvatar: "/placeholder.svg?height=40&width=40&text=T",
+       fileType: "pdf",
+       fileSize: "1.7 MB",
+       downloadUrl: "#",
+       uploadDate: "2024-01-10",
+       category: "technical",
+       version: "v1.0.0",
+       downloads: 543,
+       tags: ["交易", "技术", "深入"],
+     },
+];
 
-  // 根据搜索过滤文档
+/**
+ * Redesigned TutorialsContent component.
+ * Features Tabs for "文档" and "课程".
+ * Displays course cards in a grid under the "课程" tab.
+ */
+export function TutorialsContent() {
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState("courses"); // Default to 'courses'
+  const [feedback, setFeedback] = useState("");
+  const { toast } = useToast();
+  const [docSearchQuery, setDocSearchQuery] = useState("");
+  const [courseSearchQuery, setCourseSearchQuery] = useState("");
+
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{
+      name: string
+      size: number
+      type: string
+      progress: number
+      status: "uploading" | "success" | "error"
+      errorMessage?: string
+    }>
+  >([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+
+  // Determine the link for the main 'Start Learning' button
+  const firstCourseSlug = courses.length > 0 ? courses[0].slug : '#';
+  // TODO: Ideally link to the very first lesson, e.g., /tutorials/intro-crypto-clients/lesson-1
+  // const startLearningLink = `/tutorials/${firstCourseSlug}`;
+
+  // Filter documents based on docSearchQuery
   const filteredDocuments = technicalDocuments.filter(
     (doc) =>
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())),
-  )
+      doc.title.toLowerCase().includes(docSearchQuery.toLowerCase()) ||
+      doc.description.toLowerCase().includes(docSearchQuery.toLowerCase()) ||
+      doc.tags.some((tag) => tag.toLowerCase().includes(docSearchQuery.toLowerCase())),
+  );
+
+  // Filter courses based on courseSearchQuery
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.title.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
+      (course.description && 
+         course.description.toLowerCase().includes(courseSearchQuery.toLowerCase()))
+  );
 
   const handleFeedbackSubmit = () => {
     if (!feedback.trim()) {
@@ -261,518 +297,200 @@ export function TutorialsContent() {
     }
   }
 
+  // Placeholder handlers for new actions
+  const handleUploadCourse = () => {
+      console.log("Trigger Upload New Course action...");
+      toast({ title: "功能开发中", description: "上传新课程功能即将推出。" });
+  };
+
+  // This function would likely be passed down to CourseCard if the edit button is inside it
+  const handleEditCourse = (slug: string) => {
+      console.log(`Trigger Edit Course action for slug: ${slug}`);
+      toast({ title: "功能开发中", description: `编辑课程 ${slug} 功能即将推出。` });
+  };
+
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="guides">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="guides">
-            <FileText className="mr-2 h-4 w-4" />
-            {t("tutorials.tabs.guides")}
-          </TabsTrigger>
-          <TabsTrigger value="videos">
-            <PlayCircle className="mr-2 h-4 w-4" />
-            {t("tutorials.tabs.videos")}
-          </TabsTrigger>
-          <TabsTrigger value="faq">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            {t("tutorials.tabs.faq")}
-          </TabsTrigger>
+    <div>
+      {/* Remove the top Call to Action Buttons block */}
+      {/* 
+      {activeTab === 'courses' && (
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+           <Button asChild size="lg" className="w-full sm:w-auto bg-gradient-to-r from-solana-purple to-solana-green hover:opacity-90">
+             <Link href={startLearningLink}>{t("tutorials.startNow")}</Link>
+           </Button>
+           <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+             <Link href="#">
+               {t("tutorials.bootcamp")} <span className="ml-1.5">►</span>
+             </Link>
+           </Button>
+         </div>
+      )}
+      */}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="docs">文档</TabsTrigger>
+          <TabsTrigger value="courses">课程</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="guides" className="space-y-6">
+        <TabsContent value="docs" className="space-y-6">
+          {/* Guides Accordion (Optional - Restore if needed) */}
+          {/* <Card className="glass-morphism"> ... </Card> */}
+          
+          {/* Technical Documents Section */}
           <Card className="glass-morphism">
-            <CardHeader>
-              <CardTitle>{t("tutorials.guides.gettingStarted.title")}</CardTitle>
-              <CardDescription>{t("tutorials.guides.gettingStarted.description")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>{t("tutorials.guides.gettingStarted.whatAreBlinks.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.gettingStarted.whatAreBlinks.answer1")}</p>
-                      <p>{t("tutorials.guides.gettingStarted.whatAreBlinks.useCases")}</p>
-                      <ul>
-                        <li>{t("tutorials.guides.gettingStarted.whatAreBlinks.useCase1")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.whatAreBlinks.useCase2")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.whatAreBlinks.useCase3")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.whatAreBlinks.useCase4")}</li>
-                      </ul>
-                      <p>{t("tutorials.guides.gettingStarted.whatAreBlinks.answer2")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>
-                    {t("tutorials.guides.gettingStarted.creatingFirstBlink.question")}
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.gettingStarted.creatingFirstBlink.intro")}</p>
-                      <ol>
-                        <li>{t("tutorials.guides.gettingStarted.creatingFirstBlink.step1")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.creatingFirstBlink.step2")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.creatingFirstBlink.step3")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.creatingFirstBlink.step4")}</li>
-                        <li>{t("tutorials.guides.gettingStarted.creatingFirstBlink.step5")}</li>
-                      </ol>
-                      <p>{t("tutorials.guides.gettingStarted.creatingFirstBlink.conclusion")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>{t("tutorials.guides.gettingStarted.advancedSettings.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.gettingStarted.advancedSettings.intro")}</p>
-                      <h4>{t("tutorials.guides.gettingStarted.advancedSettings.tokenSwapsTitle")}</h4>
-                      <ul>
-                        <li>
-                          <strong>{t("tutorials.guides.gettingStarted.advancedSettings.slippageLabel")}</strong>{" "}
-                          {t("tutorials.guides.gettingStarted.advancedSettings.slippageDesc")}
-                        </li>
-                        <li>
-                          <strong>{t("tutorials.guides.gettingStarted.advancedSettings.deadlineLabel")}</strong>{" "}
-                          {t("tutorials.guides.gettingStarted.advancedSettings.deadlineDesc")}
-                        </li>
-                        <li>
-                          <strong>{t("tutorials.guides.gettingStarted.advancedSettings.recipientLabel")}</strong>{" "}
-                          {t("tutorials.guides.gettingStarted.advancedSettings.recipientDesc")}
-                        </li>
-                      </ul>
-                      <h4>{t("tutorials.guides.gettingStarted.advancedSettings.nftPurchasesTitle")}</h4>
-                      <ul>
-                        <li>
-                          <strong>{t("tutorials.guides.gettingStarted.advancedSettings.maxPriceLabel")}</strong>{" "}
-                          {t("tutorials.guides.gettingStarted.advancedSettings.maxPriceDesc")}
-                        </li>
-                        <li>
-                          <strong>{t("tutorials.guides.gettingStarted.advancedSettings.nftRecipientLabel")}</strong>{" "}
-                          {t("tutorials.guides.gettingStarted.advancedSettings.nftRecipientDesc")}
-                        </li>
-                      </ul>
-                      <p>{t("tutorials.guides.gettingStarted.advancedSettings.conclusion")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-morphism">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>{t("tutorials.guides.technicalDocs.title")}</CardTitle>
-                <CardDescription>{t("tutorials.guides.technicalDocs.description")}</CardDescription>
-              </div>
-              <Button variant="outline" className="gap-1" onClick={() => fileInputRef.current?.click()}>
-                <FilePlus className="h-4 w-4" />
-                上传文档
-              </Button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                className="hidden"
-                accept=".pdf,.docx,.md,.txt,.zip"
-                multiple
-                onChange={handleFileChange}
-              />
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full mb-6">
-                <AccordionItem value="tech-1">
-                  <AccordionTrigger>{t("tutorials.guides.technicalDocs.urlStructure.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.technicalDocs.urlStructure.intro")}</p>
-                      <pre className="bg-muted p-2 rounded-md overflow-x-auto">
-                        https://blinks.solana.com/[action]/[parameters]
-                      </pre>
-                      <p>{t("tutorials.guides.technicalDocs.urlStructure.example")}</p>
-                      <pre className="bg-muted p-2 rounded-md overflow-x-auto">
-                        https://blinks.solana.com/swap/sol-usdc?amount=1&slippage=0.5
-                      </pre>
-                      <p>{t("tutorials.guides.technicalDocs.urlStructure.conclusion")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="tech-2">
-                  <AccordionTrigger>{t("tutorials.guides.technicalDocs.dappIntegration.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.technicalDocs.dappIntegration.intro")}</p>
-                      <pre className="bg-muted p-2 rounded-md overflow-x-auto">
-                        {`import { createBlink } from '@solana-blinks/sdk';
-
-const blink = createBlink({
- action: 'swap',
- params: {
-   fromToken: 'SOL',
-   toToken: 'USDC',
-   amount: '1',
-   slippage: '0.5'
- }
-});
-
-console.log(blink.url); // 可分享的Blink链接
-`}
-                      </pre>
-                      <p>{t("tutorials.guides.technicalDocs.dappIntegration.conclusion")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="tech-3">
-                  <AccordionTrigger>{t("tutorials.guides.technicalDocs.security.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <p>{t("tutorials.guides.technicalDocs.security.intro")}</p>
-                      <ul>
-                        <li>{t("tutorials.guides.technicalDocs.security.point1")}</li>
-                        <li>{t("tutorials.guides.technicalDocs.security.point2")}</li>
-                        <li>{t("tutorials.guides.technicalDocs.security.point3")}</li>
-                        <li>{t("tutorials.guides.technicalDocs.security.point4")}</li>
-                        <li>{t("tutorials.guides.technicalDocs.security.point5")}</li>
-                      </ul>
-                      <p>{t("tutorials.guides.technicalDocs.security.conclusion")}</p>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              {/* 技术文档库 */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">技术文档库</h3>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="搜索文档..."
-                      className="pl-8 w-[250px]"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+               <CardHeader className="flex flex-row items-center justify-between">
+                 <div>
+                   <CardTitle>技术文档库</CardTitle>
+                   <CardDescription>查找 API 参考、SDK 指南和技术文章。</CardDescription>
+                 </div>
+                 {/* Restore upload button if keeping upload functionality */}
+                 {/* <Button>...</Button> */}
+               </CardHeader>
+               <CardContent>
+                  {/* Search and Filters */}
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+                      <div className="relative flex-grow w-full md:w-auto">
+                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                         <Input
+                            type="search"
+                            placeholder="搜索文档..."
+                            className="pl-8 w-full"
+                            value={docSearchQuery}
+                            onChange={(e) => setDocSearchQuery(e.target.value)}
+                         />
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">全部</Badge>
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">API</Badge>
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">SDK</Badge>
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">技术</Badge>
+                        {/* Add more filters as needed */}
+                      </div>
                   </div>
-                </div>
+                  
+                  {/* Document List */}
+                   <div className="space-y-3 mt-4">
+                     {filteredDocuments.length > 0 ? (
+                       filteredDocuments.map((doc) => (
+                         <div
+                           key={doc.id}
+                           className="group relative flex flex-col bg-card/80 rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-all"
+                         >
+                           <div className="flex p-4">
+                             <div className="mr-4 flex-shrink-0">
+                               <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
+                                 {getFileIcon(doc.fileType)}
+                               </div>
+                             </div>
+                             <div className="flex-1 min-w-0">
+                               <h4 className="text-base font-medium truncate">{doc.title}</h4>
+                               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{doc.description}</p>
+                               <div className="flex flex-wrap gap-1 mt-2">
+                                 {doc.tags.map((tag, idx) => (
+                                   <Badge key={idx} variant="secondary" className="text-xs">
+                                     {tag}
+                                   </Badge>
+                                 ))}
+                               </div>
+                             </div>
+                           </div>
+      
+                           <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-t">
+                             <div className="flex items-center text-xs text-muted-foreground">
+                               {/* Optional meta info */}
+                               <div className="flex items-center mr-3">
+                                 <Calendar className="h-3 w-3 mr-1" />
+                                 <span>{format(new Date(doc.uploadDate), "yyyy-MM-dd")}</span>
+                               </div>
+                              <div className="flex items-center mr-3">
+                                <FileText className="h-3 w-3 mr-1" />
+                                 <span>{doc.fileType.toUpperCase()} · {doc.fileSize}</span>
+                              </div>
+                             </div>
+      
+                             <div className="flex items-center gap-2">
+                               {/* Tooltip/External Link example */}
+                               {/* <TooltipProvider> ... </TooltipProvider> */}
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 px-2 text-xs"
+                                 onClick={() => handleDownload(doc.id)}
+                               >
+                                 <Download className="h-4 w-4 mr-1" />
+                                 下载
+                               </Button>
+                             </div>
+                           </div>
+                             {/* Optional Version Badge */}
+                            <div className="absolute top-0 right-0 p-2">
+                              <Badge variant="outline" className="bg-primary/10 text-primary text-xs">
+                                 {doc.version}
+                               </Badge>
+                             </div>
+                         </div>
+                       ))
+                     ) : (
+                       <div className="text-center py-12 border rounded-lg">
+                         <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                         <p className="text-muted-foreground">未找到匹配的文档</p>
+                         <Button variant="link" onClick={() => setDocSearchQuery("")} className="mt-2">
+                           清除搜索
+                         </Button>
+                       </div>
+                     )}
+                   </div>
+               </CardContent>
+           </Card>
 
-                {/* 文档分类标签 */}
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    全部
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    API
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    SDK
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    技术
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    安全
-                  </Badge>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
-                    代码
-                  </Badge>
-                </div>
+          {/* Restore Feedback Card if needed */}
+          {/* <Card className="glass-morphism"> ... </Card> */}
 
-                {/* 文档列表 */}
-                <div className="space-y-3 mt-4">
-                  {filteredDocuments.length > 0 ? (
-                    filteredDocuments.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="group relative flex flex-col bg-card rounded-lg border shadow-sm overflow-hidden hover:shadow-md transition-all"
-                      >
-                        <div className="flex p-4">
-                          <div className="mr-4 flex-shrink-0">
-                            <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
-                              {getFileIcon(doc.fileType)}
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-base font-medium truncate">{doc.title}</h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{doc.description}</p>
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {doc.tags.map((tag, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+        </TabsContent>
 
-                        <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-t">
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <div className="flex items-center mr-3">
-                              <Calendar className="h-3 w-3 mr-1" />
-                              <span>{format(new Date(doc.uploadDate), "yyyy-MM-dd")}</span>
-                            </div>
-                            <div className="flex items-center mr-3">
-                              <FileText className="h-3 w-3 mr-1" />
-                              <span>
-                                {doc.fileType.toUpperCase()} · {doc.fileSize}
-                              </span>
-                            </div>
-                            <div className="flex items-center">
-                              <Eye className="h-3 w-3 mr-1" />
-                              <span>{doc.downloads}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => window.open(doc.downloadUrl, "_blank")}
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>在新窗口打开</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 px-2 text-xs"
-                              onClick={() => handleDownload(doc.id)}
-                            >
-                              <Download className="h-4 w-4 mr-1" />
-                              下载
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="absolute top-0 right-0 p-2">
-                          <Badge variant="outline" className="bg-primary/10 text-primary">
-                            {doc.version}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12 border rounded-lg">
-                      <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">未找到匹配的文档</p>
-                      <Button variant="link" onClick={() => setSearchQuery("")} className="mt-2">
-                        清除搜索
-                      </Button>
-                    </div>
-                  )}
-                </div>
+        <TabsContent value="courses">
+          {/* Course Search and Upload Button */}
+           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+              <div className="relative flex-grow w-full md:w-auto">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                      type="search"
+                      placeholder="搜索课程..."
+                      className="pl-8 w-full"
+                      value={courseSearchQuery}
+                      onChange={(e) => setCourseSearchQuery(e.target.value)}
+                  />
               </div>
-
-              {/* 上传文件区域 */}
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-3 mt-6 border-t pt-6">
-                  <h4 className="text-sm font-medium">待发布文档</h4>
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-primary/10 rounded-md">
-                          <File className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium truncate max-w-[200px]">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        {file.status === "uploading" ? (
-                          <div className="w-24">
-                            <Progress value={file.progress} className="h-2" />
-                          </div>
-                        ) : file.status === "success" ? (
-                          <Check className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <div className="flex items-center">
-                            <AlertTriangle className="h-5 w-5 text-amber-500 mr-1" />
-                            <span className="text-xs text-amber-500">{file.errorMessage || "上传失败"}</span>
-                          </div>
-                        )}
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemoveFile(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <Button
-                    className="w-full mt-4 bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90"
-                    onClick={handlePublishDocuments}
-                    disabled={isUploading || uploadedFiles.length === 0}
-                  >
-                    {isUploading ? "上传中..." : "发布文档"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="videos" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="glass-morphism">
-              <CardHeader>
-                <CardTitle>{t("tutorials.videos.intro.title")}</CardTitle>
-                <CardDescription>{t("tutorials.videos.intro.description")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                  <PlayCircle className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{t("tutorials.videos.intro.content")}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-morphism">
-              <CardHeader>
-                <CardTitle>{t("tutorials.videos.tokenSwap.title")}</CardTitle>
-                <CardDescription>{t("tutorials.videos.tokenSwap.description")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                  <PlayCircle className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{t("tutorials.videos.tokenSwap.content")}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-morphism">
-              <CardHeader>
-                <CardTitle>{t("tutorials.videos.nftPurchase.title")}</CardTitle>
-                <CardDescription>{t("tutorials.videos.nftPurchase.description")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                  <PlayCircle className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{t("tutorials.videos.nftPurchase.content")}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="glass-morphism">
-              <CardHeader>
-                <CardTitle>{t("tutorials.videos.developer.title")}</CardTitle>
-                <CardDescription>{t("tutorials.videos.developer.description")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
-                  <PlayCircle className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground">{t("tutorials.videos.developer.content")}</p>
-              </CardContent>
-            </Card>
+              <Button onClick={handleUploadCourse} variant="outline" className="w-full md:w-auto">
+                  <Upload className="mr-2 h-4 w-4" /> 上传新课程
+               </Button>
           </div>
-        </TabsContent>
 
-        <TabsContent value="faq" className="space-y-6">
-          <Card className="glass-morphism">
-            <CardHeader>
-              <CardTitle>{t("tutorials.faq.title")}</CardTitle>
-              <CardDescription>{t("tutorials.faq.description")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="faq-1">
-                  <AccordionTrigger>{t("tutorials.faq.questions.free.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.free.answer")}</p>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="faq-2">
-                  <AccordionTrigger>{t("tutorials.faq.questions.expire.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.expire.answer")}</p>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="faq-3">
-                  <AccordionTrigger>{t("tutorials.faq.questions.cancel.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.cancel.answer")}</p>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="faq-4">
-                  <AccordionTrigger>{t("tutorials.faq.questions.wallets.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.wallets.answer")}</p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li>Phantom</li>
-                      <li>Solflare</li>
-                      <li>Backpack</li>
-                      <li>Glow</li>
-                      <li>Sollet</li>
-                      <li>Slope</li>
-                      <li>{t("tutorials.faq.questions.wallets.more")}</li>
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="faq-5">
-                  <AccordionTrigger>{t("tutorials.faq.questions.limit.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.limit.answer")}</p>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="faq-6">
-                  <AccordionTrigger>{t("tutorials.faq.questions.security.question")}</AccordionTrigger>
-                  <AccordionContent>
-                    <p>{t("tutorials.faq.questions.security.answer")}</p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-morphism">
-            <CardHeader>
-              <CardTitle>{t("tutorials.feedback.title")}</CardTitle>
-              <CardDescription>{t("tutorials.feedback.description")}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea
-                placeholder={t("tutorials.feedback.placeholder")}
-                className="min-h-[100px]"
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-              />
-              <Button
-                onClick={handleFeedbackSubmit}
-                className="w-full bg-gradient-to-r from-[#9945FF] to-[#14F195] hover:opacity-90"
-              >
-                {t("tutorials.feedback.submit")}
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Course Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCourses.length > 0 ? (
+                  filteredCourses.map((course) => (
+                      // Pass the edit handler down
+                      <CourseCard 
+                          key={course.slug} 
+                          course={course} 
+                          onEdit={handleEditCourse} // Pass the handler
+                      /> 
+                  ))
+              ) : (
+                   <div className="col-span-full text-center py-12 border rounded-lg">
+                     <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                     <p className="text-muted-foreground">未找到匹配的课程</p>
+                     <Button variant="link" onClick={() => setCourseSearchQuery("")} className="mt-2">
+                       清除搜索
+                     </Button>
+                   </div>
+              )}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
 
