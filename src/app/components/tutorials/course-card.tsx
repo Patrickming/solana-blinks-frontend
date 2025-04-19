@@ -13,6 +13,7 @@ type Course = {
   lessons: number;
   description?: string;
   imageUrl?: string;
+  firstLessonSlug: string;
 };
 
 type CourseCardProps = {
@@ -21,11 +22,14 @@ type CourseCardProps = {
 };
 
 export function CourseCard({ course, onEdit }: CourseCardProps) {
-  const courseUrl = `/tutorials/${course.slug}`;
+  // Construct the URL to the first lesson
+  const firstLessonUrl = `/tutorials/${course.slug}/${course.firstLessonSlug || '01-introduction'}`;
+  // Fallback added just in case firstLessonSlug is missing, though it shouldn't be
 
   return (
     <Card className="flex flex-col overflow-hidden h-full shadow-sm transition-all hover:shadow-md card-hover">
-      <Link href={courseUrl} className="block hover:opacity-90 transition-opacity">
+      {/* Link the image to the first lesson */}
+      <Link href={firstLessonUrl} className="block hover:opacity-90 transition-opacity">
         {/* Image Placeholder/Actual Image */}
         <div className="relative aspect-video bg-muted overflow-hidden">
           {course.imageUrl ? (
@@ -48,7 +52,8 @@ export function CourseCard({ course, onEdit }: CourseCardProps) {
 
       <CardHeader className="pb-3 pt-4 flex-grow">
         <CardTitle className="text-lg font-semibold mb-1 line-clamp-2">
-          <Link href={courseUrl} className="hover:text-primary transition-colors">
+          {/* Link the title to the first lesson */}
+          <Link href={firstLessonUrl} className="hover:text-primary transition-colors">
             {course.title}
           </Link>
         </CardTitle>
@@ -62,19 +67,9 @@ export function CourseCard({ course, onEdit }: CourseCardProps) {
           {course.lessons} LESSONS
         </span>
         <div className="flex items-center space-x-1">
-          {onEdit && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-7 w-7 text-muted-foreground hover:text-primary" 
-              onClick={(e) => { e.stopPropagation(); onEdit(course.slug); }}
-              aria-label="编辑课程"
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
+          {/* Link the "Start Course" button to the first lesson */}
           <Button asChild variant="link" size="sm" className="p-0 h-auto text-primary hover:text-primary/80">
-            <Link href={courseUrl}>Start Course</Link>
+            <Link href={firstLessonUrl}>Start Course</Link>
           </Button>
         </div>
       </CardFooter>

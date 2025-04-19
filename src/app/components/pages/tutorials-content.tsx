@@ -104,112 +104,30 @@ type DocumentsApiResponse = {
   totalPages: number;
 };
 
-// --- Static Course Data (Temporary) ---
-// Replace with actual data or fetch from API later
-const courses = [
-  {
-    slug: "intro-crypto-clients",
-    title: "Introduction to cryptography and Solana clients",
-    lessons: 6,
-    description: "Learn the basics of how to interact with the Solana blockchain.",
-    imageUrl: "/images/tutorials/course-placeholder-1.png" // Example placeholder
-  },
-  {
-    slug: "tokens-nfts",
-    title: "Tokens and NFTs on Solana",
-    lessons: 4,
-    description: "Create tokens and NFTs on Solana.",
-    imageUrl: "/images/tutorials/course-placeholder-2.png"
-  },
-  {
-    slug: "onchain-program-development",
-    title: "Onchain program development",
-    lessons: 6,
-    description: "Build onchain programs (sometimes called 'smart contracts') with Anchor.",
-    imageUrl: "/images/tutorials/course-placeholder-3.png"
-  },
-  {
-    slug: "anchor-data-feeds",
-    title: "Anchor data feeds",
-    lessons: 2,
-    description: "Connect to offchain data from inside your Anchor programs.",
-    imageUrl: "/images/tutorials/course-placeholder-1.png"
-  },
-    {
-    slug: "token-extensions",
-    title: "Token extensions",
-    lessons: 15,
-    description: "Create tokens with features like non-transferability, transfer hooks, and more.",
-    imageUrl: "/images/tutorials/course-placeholder-2.png"
-  },
-    {
-    slug: "rust-program-development",
-    title: "Rust program development",
-    lessons: 9,
-    description: "Learn how to build Solana programs without using Anchor.",
-    imageUrl: "/images/tutorials/course-placeholder-3.png"
-  },
-  // Add more courses based on the image/link...
-];
+// Type for the courses data received as prop
+type Course = {
+  slug: string;
+  title: string;
+  lessons: number;
+  description?: string;
+  imageUrl?: string;
+  firstLessonSlug: string;
+};
 
-// --- Static Technical Document Data (Restored) ---
-  const technicalDocuments = [
-    {
-      id: "doc-1",
-      title: "Solana Blinks API 参考文档",
-      description: "完整的 Solana Blinks API 参考，包括所有端点和参数",
-      author: "Solana 团队",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=S",
-      fileType: "pdf",
-      fileSize: "2.4 MB",
-      downloadUrl: "#",
-      uploadDate: "2023-11-15",
-      category: "api",
-      version: "v1.2.0",
-      downloads: 1245,
-      tags: ["API", "参考", "开发者"],
-    },
-    {
-      id: "doc-2",
-      title: "Blinks SDK 开发指南",
-      description: "使用 Blinks SDK 开发 Solana 应用的完整指南",
-      author: "开发团队",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=D",
-      fileType: "pdf",
-      fileSize: "3.8 MB",
-      downloadUrl: "#",
-      uploadDate: "2023-12-01",
-      category: "sdk",
-      version: "v2.0.1",
-      downloads: 876,
-      tags: ["SDK", "开发", "指南"],
-    },
-    {
-      id: "doc-3",
-      title: "Solana 交易结构详解",
-      description: "深入解析 Solana 交易结构和签名机制",
-      author: "技术专家",
-      authorAvatar: "/placeholder.svg?height=40&width=40&text=T",
-      fileType: "pdf",
-      fileSize: "1.7 MB",
-      downloadUrl: "#",
-      uploadDate: "2024-01-10",
-      category: "technical",
-      version: "v1.0.0",
-      downloads: 543,
-      tags: ["交易", "技术", "深入"],
-    },
-];
+// --- Removed Static Course Data ---
+// const courses = [ ... ]; // This is now passed as a prop
+
+// --- Removed Static Technical Document Data ---
+// const technicalDocuments = [ ... ];
 
 /**
  * Redesigned TutorialsContent component.
- * Features Tabs for "文档" and "课程".
- * Displays course cards in a grid under the "课程" tab.
+ * Now receives courses data as a prop.
  */
-export function TutorialsContent() {
+export function TutorialsContent({ courses }: { courses: Course[] }) { // Accept courses as a prop
   const { t } = useLanguage();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("docs"); // Default to 'docs'
+  const [activeTab, setActiveTab] = useState("docs");
   const [feedback, setFeedback] = useState("");
   const { toast } = useToast();
   const [docSearchQuery, setDocSearchQuery] = useState("");
@@ -345,7 +263,7 @@ export function TutorialsContent() {
 
   // --- Filtering Logic ---
   
-  // Filter courses (Client-side for now, can be moved to backend later)
+  // Filter courses (Client-side, using the passed prop)
   const filteredCourses = courses.filter(
     (course) =>
       course.title.toLowerCase().includes(courseSearchQuery.toLowerCase()) ||
@@ -1071,43 +989,48 @@ export function TutorialsContent() {
         </TabsContent>
 
         <TabsContent value="courses">
-          {/* Course Search and Upload Button */}
-           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-              <div className="relative flex-grow w-full md:w-auto">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                      type="search"
-                      placeholder="搜索课程..."
-                      className="pl-8 w-full"
-                      value={courseSearchQuery}
-                      onChange={(e) => setCourseSearchQuery(e.target.value)}
-                  />
-                </div>
-              <Button onClick={handleUploadCourse} variant="outline" className="w-full md:w-auto">
-                  <Upload className="mr-2 h-4 w-4" /> 上传新课程
-               </Button>
-                </div>
+          {/* Course Search */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <div className="relative flex-grow w-full">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="搜索课程..."
+                className="pl-8 w-full"
+                value={courseSearchQuery}
+                onChange={(e) => setCourseSearchQuery(e.target.value)}
+              />
+            </div>
+            {/* Removed Upload New Course Button */}
+            {/*
+            <Button onClick={handleUploadCourse} variant="outline" className="w-full md:w-auto flex-shrink-0"> 
+                <Upload className="mr-2 h-4 w-4" /> 上传新课程
+            </Button>
+            */}
+          </div>
 
           {/* Course Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCourses.length > 0 ? (
-                  filteredCourses.map((course) => (
-                      // Pass the edit handler down
-                      <CourseCard 
-                          key={course.slug} 
-                          course={course} 
-                          onEdit={handleEditCourse} // Pass the handler
-                      /> 
-                  ))
-              ) : (
-                   <div className="col-span-full text-center py-12 border rounded-lg">
-                     <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                     <p className="text-muted-foreground">未找到匹配的课程</p>
-                     <Button variant="link" onClick={() => setCourseSearchQuery("")} className="mt-2">
-                       清除搜索
-              </Button>
-                   </div>
-              )}
+            {filteredCourses.length > 0 ? (
+              filteredCourses.map((course) => (
+                <CourseCard
+                  key={course.slug}
+                  course={course}
+                  // onEdit={handleEditCourse} // Pass the handler - Removed as button is removed
+                />
+              ))
+            ) : (
+             // ... No courses found JSX ...
+             <div className="col-span-full text-center py-12 border rounded-lg">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">{courseSearchQuery ? "未找到匹配的课程" : "暂无课程"}</p>
+                {courseSearchQuery && (
+                    <Button variant="link" onClick={() => setCourseSearchQuery("")} className="mt-2">
+                      清除搜索
+                    </Button>
+                )}
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
