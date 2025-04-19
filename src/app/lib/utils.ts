@@ -42,3 +42,73 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * `fetchApi` - 发起 API 请求的通用工具函数
+ *
+ * 该函数封装了 `fetch` 调用，提供了：
+ * - 默认的 JSON 请求头 (`Content-Type: application/json`)。
+ * - 自动从 localStorage 获取 authToken 并添加到 `Authorization` 请求头 (如果存在)。
+ * - 对非 OK 响应 (状态码 >= 400) 进行错误处理，尝试解析 JSON 错误体。
+ * - 对空响应 (例如 204 No Content) 的处理。
+ * - 将错误信息记录到控制台。
+ *
+ * @template T 预期的响应数据类型。
+ * @param {string} url API 端点 URL。
+ * @param {RequestInit} [options={}] 可选的 fetch 配置项 (例如 method, body 等)。
+ * @returns {Promise<T>} 返回一个 Promise，解析为 JSON 响应数据。
+ * @throws {Error} 如果网络响应不 OK 或 JSON 解析失败，则抛出错误。
+ */
+export async function fetchApi<T>(url: string, options: RequestInit = {}): Promise<T> {
+  // 使用 Headers 对象来构建请求头
+  const headers = new Headers(options.headers);
+
+  // 设置默认 Content-Type (如果 options.headers 中没有设置)
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  // 尝试从 localStorage 获取认证令牌并添加
+  const token = typeof window !== 'undefined' ? localStorage.getItem("authToken") : null;
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  const config: RequestInit = {
+    ...options,
+    headers: headers, // 直接使用 Headers 对象
+  };
+
+  // 如果请求体是对象且 Content-Type 是 JSON，则自动序列化
+  if (config.body && typeof config.body === 'object' && 
+      headers.get('Content-Type') === 'application/json') {
+    config.body = JSON.stringify(config.body);
+  }
+
+  try {
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorBody = await response.json();
+        errorMessage += ` - ${errorBody.message || JSON.stringify(errorBody)}`;
+      } catch (e) {
+        errorMessage += ` - ${response.statusText}`;
+      }
+      // 如果是 401 或 403 错误，可以考虑在这里触发全局登出逻辑，或者让调用者处理
+      // if (response.status === 401 || response.status === 403) { ... }
+      throw new Error(errorMessage);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (response.status === 204 || !contentType || !contentType.includes("application/json")) {
+      return null as T;
+    }
+
+    return await response.json() as T;
+  } catch (error) {
+    console.error('API Fetch Error:', url, config.method || 'GET', error); // 记录更多信息
+    throw error;
+  }
+}
+
